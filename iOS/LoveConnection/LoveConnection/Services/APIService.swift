@@ -119,6 +119,15 @@ class APIService {
         return user
     }
 
+    func updateUsername(_ username: String) async throws -> User {
+        let body = try JSONEncoder().encode(["username": username])
+        let response: APIResponse<User> = try await request(APIResponse<User>.self, endpoint: "/api/user/me", method: "PATCH", body: body)
+        guard let user = response.data else {
+            throw APIError.invalidResponse
+        }
+        return user
+    }
+
     // MARK: - Pair
 
     func getCurrentPair() async throws -> Pair? {

@@ -64,3 +64,43 @@ func (h *UserHandler) UpdateDeviceToken(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true})
 }
 
+func (h *UserHandler) UpdateMe(c *gin.Context) {
+	userID, _ := c.Get("user_id")
+	uid := userID.(uuid.UUID)
+
+	var req struct {
+		Username string `json:"username" binding:"required,min=1,max=50"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	_, err := h.db.Exec(
+		"UPDATE users SET username = $1 WHERE id = $2",
+		req.Username, uid,
+	)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update username"})
+		return
+	}
+
+	var user models.User
+	err = h.db.QueryRow(
+		"SELECT id, email, apple_id, username, created_at FROM users WHERE id = $1",
+		uid,
+	).Scan(&user.ID, &user.Email, &user.AppleID, &user.Username, &user.CreatedAt)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch updated user"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    user,
+	})
+}
+

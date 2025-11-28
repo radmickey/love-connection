@@ -2,7 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject var appState: AppState
-    @State private var showingLogoutAlert = false
+    @State private var showingProfile = false
 
     var body: some View {
         NavigationStack {
@@ -26,28 +26,27 @@ struct SettingsView: View {
                 }
 
                 Section("Account") {
-                    if let user = appState.currentUser {
-                        Text("Username: \(user.username)")
-                        if let email = user.email {
-                            Text("Email: \(email)")
+                    Button {
+                        showingProfile = true
+                    } {
+                        HStack {
+                            Label("Profile", systemImage: "person.circle")
+                            Spacer()
+                            if let user = appState.currentUser {
+                                Text(user.username)
+                                    .foregroundColor(.secondary)
+                            }
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
                         }
-                    }
-
-                    Button(role: .destructive, action: {
-                        showingLogoutAlert = true
-                    }) {
-                        Label("Logout", systemImage: "arrow.right.square")
                     }
                 }
             }
             .navigationTitle("Settings")
-            .alert("Logout", isPresented: $showingLogoutAlert) {
-                Button("Cancel", role: .cancel) {}
-                Button("Logout", role: .destructive) {
-                    appState.logout()
-                }
-            } message: {
-                Text("Are you sure you want to logout?")
+            .sheet(isPresented: $showingProfile) {
+                ProfileView()
+                    .environmentObject(appState)
             }
         }
     }
