@@ -138,7 +138,7 @@ struct ProfileView: View {
                 }
             } catch {
                 await MainActor.run {
-                    errorMessage = ErrorFormatter.format(error)
+                    errorMessage = ErrorFormatter.userFriendlyMessage(from: error)
                     isLoading = false
                 }
             }

@@ -42,6 +42,7 @@
 		25B9A02C2EDA403B00053520 /* FeatureFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25B9A02B2EDA403B00053520 /* FeatureFlags.swift */; };
 		25B9A03D2EDA459F00053520 /* AppIcon.svg in Resources */ = {isa = PBXBuildFile; fileRef = 25B9A03B2EDA459F00053520 /* AppIcon.svg */; };
 		25B9A03F2EDA460600053520 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 25B9A03E2EDA460600053520 /* Assets.xcassets */; };
+		25B9A0552EDA5BA000053520 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25B9A0532EDA5BA000053520 /* ProfileView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -101,6 +102,7 @@
 		25B9A03B2EDA459F00053520 /* AppIcon.svg */ = {isa = PBXFileReference; lastKnownFileType = text; path = AppIcon.svg; sourceTree = "<group>"; };
 		25B9A03E2EDA460600053520 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		25B9A0402EDA47D700053520 /* LoveConnection.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LoveConnection.entitlements; sourceTree = "<group>"; };
+		25B9A0532EDA5BA000053520 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -266,6 +268,7 @@
 		257E58A72EDA25160026A57B /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				25B9A0542EDA5BA000053520 /* Profile */,
 				257E58962EDA25160026A57B /* Auth */,
 				257E58982EDA25160026A57B /* History */,
 				257E589C2EDA25160026A57B /* Main */,
@@ -298,6 +301,14 @@
 				25B9A03E2EDA460600053520 /* Assets.xcassets */,
 			);
 			path = Assets;
+			sourceTree = "<group>";
+		};
+		25B9A0542EDA5BA000053520 /* Profile */ = {
+			isa = PBXGroup;
+			children = (
+				25B9A0532EDA5BA000053520 /* ProfileView.swift */,
+			);
+			path = Profile;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -469,6 +480,7 @@
 				257E58BF2EDA25160026A57B /* AppleSignInButton.swift in Sources */,
 				257E58C02EDA25160026A57B /* PairRequestsView.swift in Sources */,
 				257E58C12EDA25160026A57B /* AppDelegate.swift in Sources */,
+				25B9A0552EDA5BA000053520 /* ProfileView.swift in Sources */,
 				257E58C22EDA25160026A57B /* Constants.swift in Sources */,
 				257E58C32EDA25160026A57B /* HeartAnimationView.swift in Sources */,
 				257E58C42EDA25160026A57B /* StatsView.swift in Sources */,
