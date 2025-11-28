@@ -69,7 +69,7 @@ struct AppleSignInButton: View {
             let username = [appleIDCredential.fullName?.givenName, appleIDCredential.fullName?.familyName]
                 .compactMap { $0 }
                 .joined(separator: " ")
-            
+
             let userIdentifier = appleIDCredential.user
             print("🔵 User identifier: \(userIdentifier)")
 
