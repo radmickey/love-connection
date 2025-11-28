@@ -278,18 +278,12 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
 
         sessionState = .stopping
 
-        let semaphore = DispatchSemaphore(value: 0)
-        
         DispatchQueue.main.async {
-            print("📷 QRScanner: Disconnecting preview layer before stopping session")
+            print("📷 QRScanner: Notifying preview layer to disconnect")
             NotificationCenter.default.post(name: NSNotification.Name("CaptureSessionStopping"), object: nil)
-            semaphore.signal()
         }
-        
-        semaphore.wait()
-        print("✅ QRScanner: Preview layer disconnected, stopping session")
 
-        sessionQueue.async { [weak self] in
+        sessionQueue.asyncAfter(deadline: .now() + 0.1) { [weak self] in
             guard let self = self else { return }
             guard self.sessionState == .stopping else {
                 print("⚠️ QRScanner: State changed to \(self.sessionState) during stop")
@@ -409,7 +403,7 @@ struct QRScannerPreview: UIViewRepresentable {
                     print("✅ QRScannerPreview Coordinator: Session set after ready notification")
                 }
             }
-            
+
             stoppingObserver = NotificationCenter.default.addObserver(
                 forName: NSNotification.Name("CaptureSessionStopping"),
                 object: nil,
