@@ -15,6 +15,9 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, hub *websocket.Hub) {
 
 	go hub.Run()
 
+	healthHandler := handlers.NewHealthHandler(db)
+	r.GET("/health", healthHandler.HealthCheck)
+
 	api := r.Group("/api")
 	{
 		auth := api.Group("/auth")
