@@ -28,9 +28,10 @@ type LoginRequest struct {
 }
 
 type AppleSignInRequest struct {
-	IdentityToken    string `json:"identity_token" binding:"required"`
-	AuthorizationCode string `json:"authorization_code" binding:"required"`
-	Username         *string `json:"username,omitempty"`
+	IdentityToken     string  `json:"identity_token" binding:"required"`
+	AuthorizationCode string  `json:"authorization_code" binding:"required"`
+	UserIdentifier    string  `json:"user_identifier" binding:"required"`
+	Username          *string `json:"username,omitempty"`
 }
 
 type AuthResponse struct {

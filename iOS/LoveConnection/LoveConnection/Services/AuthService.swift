@@ -59,10 +59,11 @@ class AuthService {
         return authResponse
     }
     
-    func signInWithApple(identityToken: String, authorizationCode: String, username: String?) async throws -> AuthResponse {
+    func signInWithApple(identityToken: String, authorizationCode: String, userIdentifier: String, username: String?) async throws -> AuthResponse {
         var body: [String: Any] = [
             "identity_token": identityToken,
-            "authorization_code": authorizationCode
+            "authorization_code": authorizationCode,
+            "user_identifier": userIdentifier
         ]
         
         if let username = username {

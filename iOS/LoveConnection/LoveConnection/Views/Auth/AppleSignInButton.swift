@@ -69,6 +69,9 @@ struct AppleSignInButton: View {
             let username = [appleIDCredential.fullName?.givenName, appleIDCredential.fullName?.familyName]
                 .compactMap { $0 }
                 .joined(separator: " ")
+            
+            let userIdentifier = appleIDCredential.user
+            print("🔵 User identifier: \(userIdentifier)")
 
             Task {
                 do {
@@ -76,6 +79,7 @@ struct AppleSignInButton: View {
                     let response = try await AuthService.shared.signInWithApple(
                         identityToken: identityToken,
                         authorizationCode: authorizationCode,
+                        userIdentifier: userIdentifier,
                         username: username.isEmpty ? nil : username
                     )
                     print("✅ Sign in successful, user: \(response.user.username)")

@@ -123,27 +123,33 @@ func (h *AuthHandler) AppleSignIn(c *gin.Context) {
 		return
 	}
 
+	appleUserID, err := services.ExtractAppleUserID(req.IdentityToken)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid identity token: " + err.Error()})
+		return
+	}
+
 	var user models.User
 	var userID uuid.UUID
 
-	err := h.db.QueryRow(
+	err = h.db.QueryRow(
 		"SELECT id, email, apple_id, username, created_at FROM users WHERE apple_id = $1",
-		req.IdentityToken,
+		appleUserID,
 	).Scan(&user.ID, &user.Email, &user.AppleID, &user.Username, &user.CreatedAt)
 
 	if err == sql.ErrNoRows {
 		username := "User"
-		if req.Username != nil {
+		if req.Username != nil && *req.Username != "" {
 			username = *req.Username
 		}
 
 		err = h.db.QueryRow(
 			"INSERT INTO users (apple_id, username) VALUES ($1, $2) RETURNING id",
-			req.IdentityToken, username,
+			appleUserID, username,
 		).Scan(&userID)
 
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user: " + err.Error()})
 			return
 		}
 
@@ -153,11 +159,11 @@ func (h *AuthHandler) AppleSignIn(c *gin.Context) {
 		).Scan(&user.ID, &user.Email, &user.AppleID, &user.Username, &user.CreatedAt)
 
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch user"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch user: " + err.Error()})
 			return
 		}
 	} else if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error: " + err.Error()})
 		return
 	}
 
