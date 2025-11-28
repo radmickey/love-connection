@@ -66,7 +66,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
-		"data": gin.H{
+		"data": map[string]interface{}{
 			"token": token,
 			"user":  user,
 		},
@@ -105,7 +105,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
-		"data": gin.H{
+		"data": map[string]interface{}{
 			"token": token,
 			"user":  user,
 		},
@@ -165,7 +165,7 @@ func (h *AuthHandler) AppleSignIn(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
-		"data": gin.H{
+		"data": map[string]interface{}{
 			"token": token,
 			"user":  user,
 		},

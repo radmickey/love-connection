@@ -4,9 +4,11 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+
+	"github.com/google/uuid"
 )
 
-func SendNotification(db *sql.DB, userID interface{}, senderUsername string, durationSeconds int) {
+func SendNotification(db *sql.DB, userID uuid.UUID, senderUsername string, durationSeconds int) {
 	var deviceToken sql.NullString
 	err := db.QueryRow("SELECT device_token FROM users WHERE id = $1", userID).Scan(&deviceToken)
 	if err != nil || !deviceToken.Valid {
