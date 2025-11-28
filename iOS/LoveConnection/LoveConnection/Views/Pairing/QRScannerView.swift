@@ -215,6 +215,11 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
 
     func stopScanning() {
         print("📷 QRScanner: stopScanning() called")
+        
+        DispatchQueue.main.async { [weak self] in
+            NotificationCenter.default.post(name: NSNotification.Name("CaptureSessionStopping"), object: nil)
+        }
+        
         sessionQueue.async { [weak self] in
             guard let self = self else {
                 print("❌ QRScanner: Self is nil in stopScanning")
@@ -231,8 +236,15 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
             if captureSession.isRunning {
                 print("📷 QRScanner: Stopping session...")
                 captureSession.stopRunning()
+                
+                var attempts = 0
+                while captureSession.isRunning && attempts < 10 {
+                    Thread.sleep(forTimeInterval: 0.1)
+                    attempts += 1
+                }
+                
                 self.isSessionRunning = false
-                print("✅ QRScanner: Session stopped, isRunning: \(captureSession.isRunning)")
+                print("✅ QRScanner: Session stopped, isRunning: \(captureSession.isRunning) after \(attempts) attempts")
             } else {
                 print("⚠️ QRScanner: Session was not running")
                 self.isSessionRunning = false
@@ -267,17 +279,23 @@ struct QRScannerPreview: UIViewControllerRepresentable {
 class PreviewViewController: UIViewController {
     var scanner: QRScanner?
     private var previewLayer: AVCaptureVideoPreviewLayer?
-    private var observer: NSObjectProtocol?
+    private var readyObserver: NSObjectProtocol?
+    private var stoppingObserver: NSObjectProtocol?
 
     override func viewDidLoad() {
         super.viewDidLoad()
         setupPreviewLayer()
-        setupObserver()
+        setupObservers()
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         updatePreviewLayer()
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        disconnectPreviewLayer()
     }
 
     override func viewDidLayoutSubviews() {
@@ -286,19 +304,37 @@ class PreviewViewController: UIViewController {
     }
 
     deinit {
-        if let observer = observer {
+        if let observer = readyObserver {
             NotificationCenter.default.removeObserver(observer)
         }
+        if let observer = stoppingObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
+        disconnectPreviewLayer()
     }
 
-    private func setupObserver() {
-        observer = NotificationCenter.default.addObserver(
+    private func setupObservers() {
+        readyObserver = NotificationCenter.default.addObserver(
             forName: NSNotification.Name("CaptureSessionReady"),
             object: nil,
             queue: .main
         ) { [weak self] notification in
             self?.updatePreviewLayer()
         }
+        
+        stoppingObserver = NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("CaptureSessionStopping"),
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.disconnectPreviewLayer()
+        }
+    }
+    
+    private func disconnectPreviewLayer() {
+        guard let previewLayer = previewLayer else { return }
+        print("📷 PreviewViewController: Disconnecting preview layer from session")
+        previewLayer.session = nil
     }
 
     private func setupPreviewLayer() {
