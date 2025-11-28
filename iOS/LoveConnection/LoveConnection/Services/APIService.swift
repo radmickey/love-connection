@@ -55,6 +55,13 @@ class APIService {
             if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
                 throw APIError.serverError(errorResponse.error)
             }
+            if let errorDict = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let errorMessage = errorDict["error"] as? String {
+                throw APIError.serverError(errorMessage)
+            }
+            if !data.isEmpty, let errorString = String(data: data, encoding: .utf8) {
+                throw APIError.serverError(errorString)
+            }
             throw APIError.httpError(httpResponse.statusCode)
         }
 
@@ -65,16 +72,16 @@ class APIService {
             decoder.dateDecodingStrategy = .custom { decoder in
                 let container = try decoder.singleValueContainer()
                 let dateString = try container.decode(String.self)
-                
+
                 if let date = formatter.date(from: dateString) {
                     return date
                 }
-                
+
                 formatter.formatOptions = [.withInternetDateTime]
                 if let date = formatter.date(from: dateString) {
                     return date
                 }
-                
+
                 throw DecodingError.dataCorruptedError(in: container, debugDescription: "Invalid date format: \(dateString)")
             }
             return try decoder.decode(T.self, from: data)
