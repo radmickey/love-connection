@@ -1,0 +1,23 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="heartGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF6B9D;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FF1744;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="512" cy="512" r="512" fill="#FFFFFF"/>
+  
+  <!-- Main heart -->
+  <path d="M512 800 C512 800, 200 550, 200 400 C200 300, 280 250, 350 280 C400 300, 512 400, 512 400 C512 400, 624 300, 674 280 C744 250, 824 300, 824 400 C824 550, 512 800, 512 800 Z" 
+        fill="url(#heartGradient)" 
+        stroke="#FFFFFF" 
+        stroke-width="20"/>
+  
+  <!-- Smaller heart inside -->
+  <path d="M512 700 C512 700, 300 500, 300 400 C300 340, 350 310, 400 330 C430 340, 512 420, 512 420 C512 420, 594 340, 624 330 C674 310, 724 340, 724 400 C724 500, 512 700, 512 700 Z" 
+        fill="#FFFFFF" 
+        opacity="0.3"/>
+</svg>
+
