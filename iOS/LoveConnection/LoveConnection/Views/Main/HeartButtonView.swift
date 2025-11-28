@@ -60,7 +60,7 @@ struct HeartButtonView: View {
                     }
                 }
             }
-            .navigationTitle("Love Connection")
+            .navigationTitle("Couple Love Connection")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Menu {

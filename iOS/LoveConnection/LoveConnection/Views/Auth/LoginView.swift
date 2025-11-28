@@ -15,7 +15,7 @@ struct LoginView: View {
             VStack(spacing: 24) {
                 Spacer()
 
-                Text("Love Connection")
+                Text("Couple Love Connection")
                     .font(.largeTitle)
                     .fontWeight(.bold)
 
