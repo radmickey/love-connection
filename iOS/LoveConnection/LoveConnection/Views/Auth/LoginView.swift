@@ -93,19 +93,19 @@ struct LoginView: View {
             showError = true
             return
         }
-        
+
         if !EmailValidator.isValid(email) {
             errorMessage = "Please enter a valid email address"
             showError = true
             return
         }
-        
+
         if password.isEmpty {
             errorMessage = "Password is required"
             showError = true
             return
         }
-        
+
         isLoading = true
         errorMessage = nil
         showError = false

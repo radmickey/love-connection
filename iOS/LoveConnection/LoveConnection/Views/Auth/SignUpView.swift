@@ -90,36 +90,36 @@ struct SignUpView: View {
         password == confirmPassword &&
         password.count >= 6
     }
-    
+
     private func validateForm() -> String? {
         if username.isEmpty {
             return "Username is required"
         }
-        
+
         if username.count < 3 {
             return "Username must be at least 3 characters"
         }
-        
+
         if email.isEmpty {
             return "Email is required"
         }
-        
+
         if !EmailValidator.isValid(email) {
             return "Please enter a valid email address"
         }
-        
+
         if password.isEmpty {
             return "Password is required"
         }
-        
+
         if password.count < 6 {
             return "Password must be at least 6 characters long"
         }
-        
+
         if password != confirmPassword {
             return "Passwords do not match"
         }
-        
+
         return nil
     }
 

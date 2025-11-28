@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		25159AB32EDA342600F94787 /* EmailValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25159AB12EDA342600F94787 /* EmailValidator.swift */; };
+		25159AB42EDA342600F94787 /* ErrorFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25159AB22EDA342600F94787 /* ErrorFormatter.swift */; };
 		257E58AB2EDA25160026A57B /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 257E58812EDA25160026A57B /* AppState.swift */; };
 		257E58AC2EDA25160026A57B /* APIResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 257E58832EDA25160026A57B /* APIResponse.swift */; };
 		257E58AD2EDA25160026A57B /* WebSocketService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 257E588D2EDA25160026A57B /* WebSocketService.swift */; };
@@ -57,6 +59,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		25159AB12EDA342600F94787 /* EmailValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailValidator.swift; sourceTree = "<group>"; };
+		25159AB22EDA342600F94787 /* ErrorFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorFormatter.swift; sourceTree = "<group>"; };
 		257E58562EDA24B80026A57B /* LoveConnection.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LoveConnection.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		257E58632EDA24B90026A57B /* LoveConnectionTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LoveConnectionTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		257E586D2EDA24B90026A57B /* LoveConnectionUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LoveConnectionUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -186,6 +190,8 @@
 		257E58922EDA25160026A57B /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				25159AB12EDA342600F94787 /* EmailValidator.swift */,
+				25159AB22EDA342600F94787 /* ErrorFormatter.swift */,
 				257E588F2EDA25160026A57B /* Config.swift */,
 				257E58902EDA25160026A57B /* Constants.swift */,
 				257E58912EDA25160026A57B /* KeychainHelper.swift */,
@@ -427,6 +433,8 @@
 				257E58B32EDA25160026A57B /* NotificationService.swift in Sources */,
 				257E58B42EDA25160026A57B /* HistoryView.swift in Sources */,
 				257E58B52EDA25160026A57B /* QRScannerView.swift in Sources */,
+				25159AB32EDA342600F94787 /* EmailValidator.swift in Sources */,
+				25159AB42EDA342600F94787 /* ErrorFormatter.swift in Sources */,
 				257E58B62EDA25160026A57B /* LoginView.swift in Sources */,
 				257E58B72EDA25160026A57B /* SettingsView.swift in Sources */,
 				257E58B82EDA25160026A57B /* Pair.swift in Sources */,

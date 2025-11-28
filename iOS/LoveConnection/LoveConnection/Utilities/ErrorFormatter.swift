@@ -5,25 +5,25 @@ struct ErrorFormatter {
         if let apiError = error as? APIError {
             return formatAPIError(apiError)
         }
-        
+
         let errorString = error.localizedDescription
-        
+
         if errorString.contains("Email") && errorString.contains("validation") {
             return "Please enter a valid email address"
         }
-        
+
         if errorString.contains("Password") && errorString.contains("validation") {
             return "Password must be at least 6 characters long"
         }
-        
+
         if errorString.contains("Username") && errorString.contains("validation") {
             return "Username is required"
         }
-        
+
         if errorString.contains("email") && errorString.contains("tag") {
             return "Please enter a valid email address"
         }
-        
+
         if errorString.contains("already exists") || errorString.contains("duplicate") {
             if errorString.lowercased().contains("email") {
                 return "An account with this email already exists"
@@ -33,22 +33,22 @@ struct ErrorFormatter {
             }
             return "This information is already in use"
         }
-        
+
         if errorString.contains("invalid credentials") || errorString.contains("unauthorized") {
             return "Invalid email or password"
         }
-        
+
         if errorString.contains("network") || errorString.contains("connection") {
             return "Unable to connect. Please check your internet connection"
         }
-        
+
         if errorString.contains("timeout") {
             return "Request timed out. Please try again"
         }
-        
+
         return errorString
     }
-    
+
     private static func formatAPIError(_ error: APIError) -> String {
         switch error {
         case .invalidURL:
@@ -76,22 +76,22 @@ struct ErrorFormatter {
             return "Unable to process server response"
         }
     }
-    
+
     private static func userFriendlyMessage(from message: String) -> String {
         let lowercased = message.lowercased()
-        
+
         if lowercased.contains("email") && (lowercased.contains("validation") || lowercased.contains("failed")) {
             return "Please enter a valid email address"
         }
-        
+
         if lowercased.contains("password") && lowercased.contains("validation") {
             return "Password must be at least 6 characters long"
         }
-        
+
         if lowercased.contains("username") && lowercased.contains("validation") {
             return "Username is required"
         }
-        
+
         if lowercased.contains("already exists") || lowercased.contains("duplicate") {
             if lowercased.contains("email") {
                 return "An account with this email already exists"
@@ -101,7 +101,7 @@ struct ErrorFormatter {
             }
             return "This information is already in use"
         }
-        
+
         return message
     }
 }
