@@ -27,7 +27,7 @@ struct LoginView: View {
                         .onSubmit {
                             // Focus moves to password field
                         }
-                    
+
                     SecureField("Password", text: $password)
                         .textFieldStyle(.roundedBorder)
                         .submitLabel(.go)
@@ -80,7 +80,7 @@ struct LoginView: View {
             }
         }
     }
-    
+
     private func hideKeyboard() {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }

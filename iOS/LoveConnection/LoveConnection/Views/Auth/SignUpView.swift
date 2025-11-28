@@ -9,7 +9,7 @@ struct SignUpView: View {
     @State private var username = ""
     @State private var errorMessage: String?
     @State private var isLoading = false
-    
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 24) {
@@ -19,18 +19,18 @@ struct SignUpView: View {
                         .autocapitalization(.none)
                         .autocorrectionDisabled()
                         .submitLabel(.next)
-                    
+
                     TextField("Email", text: $email)
                         .textFieldStyle(.roundedBorder)
                         .autocapitalization(.none)
                         .keyboardType(.emailAddress)
                         .autocorrectionDisabled()
                         .submitLabel(.next)
-                    
+
                     SecureField("Password", text: $password)
                         .textFieldStyle(.roundedBorder)
                         .submitLabel(.next)
-                    
+
                     SecureField("Confirm Password", text: $confirmPassword)
                         .textFieldStyle(.roundedBorder)
                         .submitLabel(.done)
@@ -39,13 +39,13 @@ struct SignUpView: View {
                                 signUp()
                             }
                         }
-                    
+
                     if let errorMessage = errorMessage {
                         Text(errorMessage)
                             .foregroundColor(.red)
                             .font(.caption)
                     }
-                    
+
                     Button(action: signUp) {
                         if isLoading {
                             ProgressView()
@@ -59,7 +59,7 @@ struct SignUpView: View {
                     .disabled(isLoading || !isFormValid)
                 }
                 .padding()
-                
+
                 Spacer()
             }
             .navigationTitle("Sign Up")
@@ -76,11 +76,11 @@ struct SignUpView: View {
             }
         }
     }
-    
+
     private func hideKeyboard() {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
-    
+
     private var isFormValid: Bool {
         !email.isEmpty &&
         !password.isEmpty &&
@@ -88,16 +88,16 @@ struct SignUpView: View {
         password == confirmPassword &&
         password.count >= 6
     }
-    
+
     private func signUp() {
         guard password == confirmPassword else {
             errorMessage = "Passwords do not match"
             return
         }
-        
+
         isLoading = true
         errorMessage = nil
-        
+
         Task {
             do {
                 let response = try await AuthService.shared.register(email: email, password: password, username: username)
