@@ -108,11 +108,18 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
             return
         }
 
-        captureSession.startRunning()
+        let sessionQueue = DispatchQueue(label: "com.loveconnection.captureSession")
+        sessionQueue.async {
+            captureSession.startRunning()
+        }
     }
 
     func stopScanning() {
-        captureSession?.stopRunning()
+        guard let captureSession = captureSession else { return }
+        let sessionQueue = DispatchQueue(label: "com.loveconnection.captureSession")
+        sessionQueue.async {
+            captureSession.stopRunning()
+        }
     }
 
     func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
