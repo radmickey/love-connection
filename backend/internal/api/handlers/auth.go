@@ -151,6 +151,7 @@ func (h *AuthHandler) AppleSignIn(c *gin.Context) {
 
 		if err != nil {
 			log.Printf("❌ Apple Sign In: Failed to create user: %v", err)
+			log.Printf("❌ Apple Sign In: UserIdentifier length: %d, Username: %s", len(req.UserIdentifier), username)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user: " + err.Error()})
 			return
 		}
