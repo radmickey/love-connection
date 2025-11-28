@@ -41,6 +41,7 @@
 		257E58C82EDA25160026A57B /* HeartButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 257E589A2EDA25160026A57B /* HeartButtonView.swift */; };
 		25B9A02C2EDA403B00053520 /* FeatureFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25B9A02B2EDA403B00053520 /* FeatureFlags.swift */; };
 		25B9A03D2EDA459F00053520 /* AppIcon.svg in Resources */ = {isa = PBXBuildFile; fileRef = 25B9A03B2EDA459F00053520 /* AppIcon.svg */; };
+		25B9A03F2EDA460600053520 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 25B9A03E2EDA460600053520 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -98,6 +99,7 @@
 		257E58A92EDA25160026A57B /* LoveConnectionApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoveConnectionApp.swift; sourceTree = "<group>"; };
 		25B9A02B2EDA403B00053520 /* FeatureFlags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureFlags.swift; sourceTree = "<group>"; };
 		25B9A03B2EDA459F00053520 /* AppIcon.svg */ = {isa = PBXFileReference; lastKnownFileType = text; path = AppIcon.svg; sourceTree = "<group>"; };
+		25B9A03E2EDA460600053520 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -291,6 +293,7 @@
 			isa = PBXGroup;
 			children = (
 				25B9A03B2EDA459F00053520 /* AppIcon.svg */,
+				25B9A03E2EDA460600053520 /* Assets.xcassets */,
 			);
 			path = Assets;
 			sourceTree = "<group>";
@@ -412,6 +415,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				25B9A03F2EDA460600053520 /* Assets.xcassets in Resources */,
 				25B9A03D2EDA459F00053520 /* AppIcon.svg in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
