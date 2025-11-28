@@ -100,6 +100,7 @@
 		25B9A02B2EDA403B00053520 /* FeatureFlags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureFlags.swift; sourceTree = "<group>"; };
 		25B9A03B2EDA459F00053520 /* AppIcon.svg */ = {isa = PBXFileReference; lastKnownFileType = text; path = AppIcon.svg; sourceTree = "<group>"; };
 		25B9A03E2EDA460600053520 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		25B9A0402EDA47D700053520 /* LoveConnection.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LoveConnection.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -279,6 +280,7 @@
 		257E58AA2EDA25160026A57B /* LoveConnection */ = {
 			isa = PBXGroup;
 			children = (
+				25B9A0402EDA47D700053520 /* LoveConnection.entitlements */,
 				257E58822EDA25160026A57B /* App */,
 				257E58892EDA25160026A57B /* Models */,
 				257E588E2EDA25160026A57B /* Services */,
@@ -633,6 +635,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = LoveConnection/LoveConnection.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = UG4928G289;
@@ -667,6 +670,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = LoveConnection/LoveConnection.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = UG4928G289;

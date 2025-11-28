@@ -54,5 +54,20 @@
 	<string>http://84.252.141.42:8080</string>
 	<key>PRODUCTION_BACKEND_URL</key>
 	<string>http://84.252.141.42:8080</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>84.252.141.42</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+				<key>NSExceptionRequiresForwardSecrecy</key>
+				<false/>
+				<key>NSIncludesSubdomains</key>
+				<true/>
+			</dict>
+		</dict>
+	</dict>
 </dict>
 </plist>
