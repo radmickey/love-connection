@@ -33,3 +33,9 @@ type AppleSignInRequest struct {
 	Username         *string `json:"username,omitempty"`
 }
 
+type AuthResponse struct {
+	Token        string `json:"token"`
+	RefreshToken *string `json:"refresh_token,omitempty"`
+	User         User   `json:"user"`
+}
+

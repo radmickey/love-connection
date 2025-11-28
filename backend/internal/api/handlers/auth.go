@@ -64,12 +64,14 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
+	authResponse := models.AuthResponse{
+		Token: token,
+		User:  user,
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
-		"data": map[string]interface{}{
-			"token": token,
-			"user":  user,
-		},
+		"data":    authResponse,
 	})
 }
 
@@ -103,12 +105,14 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
+	authResponse := models.AuthResponse{
+		Token: token,
+		User:  user,
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
-		"data": map[string]interface{}{
-			"token": token,
-			"user":  user,
-		},
+		"data":    authResponse,
 	})
 }
 
@@ -163,12 +167,14 @@ func (h *AuthHandler) AppleSignIn(c *gin.Context) {
 		return
 	}
 
+	authResponse := models.AuthResponse{
+		Token: token,
+		User:  user,
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
-		"data": map[string]interface{}{
-			"token": token,
-			"user":  user,
-		},
+		"data":    authResponse,
 	})
 }
 
