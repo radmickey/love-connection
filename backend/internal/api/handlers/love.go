@@ -99,34 +99,15 @@ func (h *LoveHandler) GetHistory(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 	currentUserID := userID.(uuid.UUID)
 
-	var pairID uuid.UUID
-	err := h.db.QueryRow(
-		"SELECT id FROM pairs WHERE user1_id = $1 OR user2_id = $1",
-		currentUserID,
-	).Scan(&pairID)
-
-	if err == sql.ErrNoRows {
-		c.JSON(http.StatusOK, gin.H{
-			"success": true,
-			"data":    []models.LoveEvent{},
-		})
-		return
-	}
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
-		return
-	}
-
 	rows, err := h.db.Query(
 		`SELECT e.id, e.pair_id, e.sender_id, e.duration_seconds, e.created_at,
 			u.id, u.email, u.apple_id, u.username, u.created_at
 		FROM love_events e
 		JOIN users u ON e.sender_id = u.id
-		WHERE e.pair_id = $1
+		WHERE e.sender_id = $1
 		ORDER BY e.created_at DESC
 		LIMIT 100`,
-		pairID,
+		currentUserID,
 	)
 
 	if err != nil {

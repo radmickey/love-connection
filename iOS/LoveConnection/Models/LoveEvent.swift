@@ -9,7 +9,7 @@ import Foundation
 
 struct LoveEvent: Codable, Identifiable {
     let id: UUID
-    let pairId: UUID
+    let pairId: UUID?
     let senderId: UUID
     let sender: User?
     let durationSeconds: Int
