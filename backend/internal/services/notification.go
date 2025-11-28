@@ -3,10 +3,15 @@ package services
 import (
 	"database/sql"
 	"fmt"
+	"love-connection/backend/pkg/apns"
 	"os"
+	"sync"
 
 	"github.com/google/uuid"
 )
+
+var apnsClient *apns.Client
+var apnsClientOnce sync.Once
 
 func SendNotification(db *sql.DB, userID uuid.UUID, senderUsername string, durationSeconds int) {
 	var deviceToken sql.NullString
@@ -16,7 +21,8 @@ func SendNotification(db *sql.DB, userID uuid.UUID, senderUsername string, durat
 	}
 
 	formattedDuration := formatDuration(durationSeconds)
-	message := fmt.Sprintf("Пользователь %s отправил сердечко! <3\n%s", senderUsername, formattedDuration)
+	title := "Love Connection"
+	body := fmt.Sprintf("Пользователь %s отправил сердечко! <3\n%s", senderUsername, formattedDuration)
 
 	apnsKeyPath := os.Getenv("APNS_KEY_PATH")
 	apnsKeyID := os.Getenv("APNS_KEY_ID")
@@ -24,10 +30,24 @@ func SendNotification(db *sql.DB, userID uuid.UUID, senderUsername string, durat
 	apnsBundleID := os.Getenv("APNS_BUNDLE_ID")
 
 	if apnsKeyPath == "" || apnsKeyID == "" || apnsTeamID == "" || apnsBundleID == "" {
+		fmt.Printf("APNs not configured, would send: %s\n", body)
 		return
 	}
 
-	sendAPNSNotification(deviceToken.String, message, apnsKeyPath, apnsKeyID, apnsTeamID, apnsBundleID)
+	apnsClientOnce.Do(func() {
+		client, err := apns.NewClient(apnsKeyPath, apnsKeyID, apnsTeamID, apnsBundleID)
+		if err != nil {
+			fmt.Printf("Failed to create APNs client: %v\n", err)
+			return
+		}
+		apnsClient = client
+	})
+
+	if apnsClient != nil {
+		if err := apnsClient.SendNotification(deviceToken.String, title, body); err != nil {
+			fmt.Printf("Failed to send APNs notification: %v\n", err)
+		}
+	}
 }
 
 func formatDuration(seconds int) string {
@@ -41,12 +61,5 @@ func formatDuration(seconds int) string {
 		return fmt.Sprintf("%d мин", minutes)
 	}
 	return fmt.Sprintf("%d сек", secs)
-}
-
-func sendAPNSNotification(deviceToken, message, keyPath, keyID, teamID, bundleID string) {
-	// TODO: Implement APNs client
-	// This would require implementing the APNs HTTP/2 protocol
-	// For now, this is a placeholder
-	fmt.Printf("Would send notification to %s: %s\n", deviceToken, message)
 }
 
