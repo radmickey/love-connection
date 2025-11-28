@@ -4,12 +4,16 @@ import (
 	"database/sql"
 	"love-connection/backend/internal/api/handlers"
 	"love-connection/backend/internal/api/middleware"
+	"love-connection/backend/internal/websocket"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
-func SetupRoutes(r *gin.Engine, db *sql.DB) {
+func SetupRoutes(r *gin.Engine, db *sql.DB, hub *websocket.Hub) {
 	r.Use(middleware.CORS())
+
+	go hub.Run()
 
 	api := r.Group("/api")
 	{
@@ -31,13 +35,22 @@ func SetupRoutes(r *gin.Engine, db *sql.DB) {
 			api.POST("/pairs/create", pairHandler.CreatePair)
 			api.GET("/pairs/current", pairHandler.GetCurrentPair)
 
-			loveHandler := handlers.NewLoveHandler(db)
+			loveHandler := handlers.NewLoveHandler(db, hub)
 			api.POST("/love/send", loveHandler.SendLove)
 			api.GET("/love/history", loveHandler.GetHistory)
 
 			statsHandler := handlers.NewStatsHandler(db)
 			api.GET("/stats", statsHandler.GetStats)
 		}
+	}
+
+	wsGroup := r.Group("/ws")
+	wsGroup.Use(middleware.Auth())
+	{
+		wsGroup.GET("", func(c *gin.Context) {
+			userID, _ := c.Get("user_id")
+			hub.HandleWebSocket(c.Writer, c.Request, userID.(uuid.UUID))
+		})
 	}
 }
 

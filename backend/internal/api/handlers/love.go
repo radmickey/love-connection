@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"love-connection/backend/internal/models"
 	"love-connection/backend/internal/services"
+	"love-connection/backend/internal/websocket"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -11,11 +12,12 @@ import (
 )
 
 type LoveHandler struct {
-	db *sql.DB
+	db  *sql.DB
+	hub *websocket.Hub
 }
 
-func NewLoveHandler(db *sql.DB) *LoveHandler {
-	return &LoveHandler{db: db}
+func NewLoveHandler(db *sql.DB, hub *websocket.Hub) *LoveHandler {
+	return &LoveHandler{db: db, hub: hub}
 }
 
 func (h *LoveHandler) SendLove(c *gin.Context) {
@@ -84,6 +86,7 @@ func (h *LoveHandler) SendLove(c *gin.Context) {
 
 	if err == nil {
 		go services.SendNotification(h.db, partnerID, sender.Username, req.DurationSeconds)
+		h.hub.BroadcastLoveEvent(event, partnerID)
 	}
 
 	c.JSON(http.StatusOK, gin.H{

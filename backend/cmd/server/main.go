@@ -4,6 +4,7 @@ import (
 	"log"
 	"love-connection/backend/internal/api"
 	"love-connection/backend/internal/database"
+	"love-connection/backend/internal/websocket"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -20,9 +21,10 @@ func main() {
 		log.Fatal("Failed to run migrations:", err)
 	}
 
+	hub := websocket.NewHub()
 	r := gin.Default()
 
-	api.SetupRoutes(r, db)
+	api.SetupRoutes(r, db, hub)
 
 	port := os.Getenv("PORT")
 	if port == "" {
