@@ -49,14 +49,13 @@ func (h *PairHandler) CreatePair(c *gin.Context) {
 		return
 	}
 
-	var user1Exists bool
+	var user1Exists, user2Exists bool
 	err = h.db.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)", currentUserID).Scan(&user1Exists)
 	if err != nil || !user1Exists {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Current user not found"})
 		return
 	}
 
-	var user2Exists bool
 	err = h.db.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)", partnerID).Scan(&user2Exists)
 	if err != nil || !user2Exists {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Partner not found"})

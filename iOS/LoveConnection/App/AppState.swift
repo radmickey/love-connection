@@ -42,13 +42,16 @@ class AppState: ObservableObject {
     func loadCurrentPair() async {
         do {
             self.currentPair = try await apiService.getCurrentPair()
+            if self.currentPair != nil {
+                WebSocketService.shared.connect()
+            }
         } catch {
-            // No pair exists yet
             self.currentPair = nil
         }
     }
     
     func logout() {
+        WebSocketService.shared.disconnect()
         KeychainHelper.shared.deleteToken()
         self.isAuthenticated = false
         self.currentUser = nil
