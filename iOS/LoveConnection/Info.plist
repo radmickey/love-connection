@@ -53,7 +53,7 @@
 	<key>DEBUG_BACKEND_URL</key>
 	<string>http://84.252.141.42:8080</string>
 	<key>PRODUCTION_BACKEND_URL</key>
-	<string>http://84.252.141.42:8080</string>
+	<string>https://love-couple-connect.duckdns.org</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
