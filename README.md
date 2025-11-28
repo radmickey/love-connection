@@ -120,10 +120,20 @@ make build-backend
    open iOS/LoveConnection.xcodeproj
    ```
 
-2. Update `Constants.swift` with your backend URL:
-   ```swift
-   static let baseURL = "http://localhost:8080"  // or your server URL
-   ```
+2. **Configure Backend URL:**
+   
+   **For Simulator (default):**
+   - Uses `http://localhost:8080` automatically
+   - No configuration needed if backend runs on localhost
+   
+   **For Physical Device:**
+   - Find your computer's IP: `ipconfig getifaddr en0` (macOS)
+   - Open app → Settings tab → Enter `http://YOUR_IP:8080`
+   - Or update `Constants.swift` directly
+   
+   **For Production:**
+   - Update `Constants.swift` with production URL
+   - Or configure via Settings screen in the app
 
 3. Configure capabilities in Xcode:
    - Sign in with Apple
@@ -131,6 +141,8 @@ make build-backend
    - Camera (for QR code scanning)
 
 4. Build and run in Xcode (⌘R)
+
+See `iOS/README.md` for detailed configuration instructions.
 
 ## Available Make Commands
 

@@ -9,8 +9,10 @@ import Foundation
 
 class APIService {
     static let shared = APIService()
-
-    private let baseURL = Constants.baseURL
+    
+    private var baseURL: String {
+        Config.shared.baseURL
+    }
     private let session: URLSession
 
     private init() {
