@@ -23,7 +23,7 @@ struct ContentView: View {
             }
         }
         .task {
-            await appState.checkAuthenticationStatus()
+            appState.checkAuthenticationStatus()
         }
     }
 }

@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct LoveEvent: Codable, Identifiable {
+struct LoveEvent: Codable, Identifiable, Equatable {
     let id: UUID
     let pairId: UUID?
     let senderId: UUID
@@ -35,6 +35,10 @@ struct LoveEvent: Codable, Identifiable {
             return "\(minutes) мин"
         }
         return "\(seconds) сек"
+    }
+    
+    static func == (lhs: LoveEvent, rhs: LoveEvent) -> Bool {
+        lhs.id == rhs.id
     }
 }
 

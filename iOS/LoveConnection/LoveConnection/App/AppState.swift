@@ -18,7 +18,7 @@ class AppState: ObservableObject {
 
     func checkAuthenticationStatus() {
         Task {
-            if let token = KeychainHelper.shared.getToken() {
+            if KeychainHelper.shared.getToken() != nil {
                 do {
                     let user = try await apiService.getCurrentUser()
                     self.currentUser = user

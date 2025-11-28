@@ -111,7 +111,7 @@ struct HeartButtonView: View {
         timer?.invalidate()
         timer = nil
 
-        guard let startTime = startTime, duration > 0 else { return }
+        guard duration > 0 else { return }
 
         let durationSeconds = Int(duration)
 

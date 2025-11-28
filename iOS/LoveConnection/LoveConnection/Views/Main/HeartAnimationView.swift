@@ -9,13 +9,13 @@ struct HeartAnimationView: View {
             .font(.system(size: 120))
             .foregroundColor(.red)
             .scaleEffect(scale)
-            .onChange(of: isAnimating) { animating in
+            .onChange(of: isAnimating, perform: { animating in
                 if animating {
                     startAnimation()
                 } else {
                     stopAnimation()
                 }
-            }
+            })
     }
     
     private func startAnimation() {

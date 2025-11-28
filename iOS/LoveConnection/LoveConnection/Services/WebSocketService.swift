@@ -73,7 +73,7 @@ class WebSocketService: ObservableObject {
             return
         }
 
-        if event.type == "love_event", let loveEvent = event.data as? LoveEvent {
+        if event.type == "love_event", let loveEvent = event.data {
             DispatchQueue.main.async {
                 self.receivedLoveEvent = loveEvent
             }
