@@ -56,4 +56,3 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, hub *websocket.Hub) {
 		})
 	}
 }
-

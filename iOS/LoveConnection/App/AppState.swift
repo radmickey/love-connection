@@ -45,7 +45,7 @@ class AppState: ObservableObject {
             WebSocketService.shared.disconnect()
         }
     }
-    
+
     func deletePair() async {
         do {
             try await apiService.deletePair()

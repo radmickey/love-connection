@@ -81,7 +81,7 @@ class APIService {
         let response: APIResponse<Pair> = try await request(APIResponse<Pair>.self, endpoint: Constants.API.pairsCurrent)
         return response.data
     }
-    
+
     func deletePair() async throws {
         let _: APIResponse<EmptyResponse> = try await request(APIResponse<EmptyResponse>.self, endpoint: Constants.API.pairsCurrent, method: "DELETE")
     }

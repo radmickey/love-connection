@@ -14,7 +14,7 @@ struct LoveEvent: Codable, Identifiable {
     let sender: User?
     let durationSeconds: Int
     let createdAt: Date
-    
+
     enum CodingKeys: String, CodingKey {
         case id
         case pairId = "pair_id"
@@ -23,11 +23,11 @@ struct LoveEvent: Codable, Identifiable {
         case durationSeconds = "duration_seconds"
         case createdAt = "created_at"
     }
-    
+
     var formattedDuration: String {
         let minutes = durationSeconds / 60
         let seconds = durationSeconds % 60
-        
+
         if minutes > 0 {
             if seconds > 0 {
                 return "\(minutes) мин \(seconds) сек"

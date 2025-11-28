@@ -71,7 +71,7 @@ func (h *LoveHandler) SendLove(c *gin.Context) {
 		&event.ID, &pairID, &event.SenderID, &event.DurationSeconds, &event.CreatedAt,
 		&sender.ID, &sender.Email, &sender.AppleID, &sender.Username, &sender.CreatedAt,
 	)
-	
+
 	if pairID.Valid {
 		parsedID, err := uuid.Parse(pairID.String)
 		if err == nil {
