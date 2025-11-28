@@ -48,12 +48,36 @@ struct AppleSignInButton: View {
 
         case .failure(let error):
             let nsError = error as NSError
+            #if targetEnvironment(simulator)
+            if nsError.domain == "com.apple.AuthenticationServices.AuthorizationError" || 
+               nsError.domain == "AKAuthenticationError" {
+                print("Note: Apple Sign In is not fully supported in iOS Simulator. Use a real device for testing.")
+                errorMessage = nil
+                return
+            }
+            #endif
+            
             if nsError.domain == "com.apple.AuthenticationServices.AuthorizationError" {
-                #if targetEnvironment(simulator)
-                errorMessage = "Apple Sign In requires a real device or proper simulator configuration"
-                #else
-                errorMessage = error.localizedDescription
-                #endif
+                switch nsError.code {
+                case 1000:
+                    errorMessage = "Authorization was cancelled"
+                case 1001:
+                    errorMessage = "Authorization failed"
+                default:
+                    errorMessage = "Apple Sign In error: \(nsError.localizedDescription)"
+                }
+            } else if nsError.domain == "AKAuthenticationError" {
+                switch nsError.code {
+                case -7034:
+                    #if targetEnvironment(simulator)
+                    print("Note: Apple Sign In requires a real device")
+                    errorMessage = nil
+                    #else
+                    errorMessage = "Apple Sign In configuration error"
+                    #endif
+                default:
+                    errorMessage = "Authentication error: \(nsError.localizedDescription)"
+                }
             } else {
                 errorMessage = error.localizedDescription
             }

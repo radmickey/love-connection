@@ -46,6 +46,12 @@ struct LoginView: View {
                     
                     AppleSignInButton()
                     
+                    #if targetEnvironment(simulator)
+                    Text("Note: Apple Sign In requires a real device")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                    #endif
+                    
                     Button("Don't have an account? Sign up") {
                         showingSignUp = true
                     }
