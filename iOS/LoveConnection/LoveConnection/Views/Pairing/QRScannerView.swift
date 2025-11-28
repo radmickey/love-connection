@@ -41,11 +41,12 @@ struct QRScannerView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
+                        scanner.stopScanning()
                         dismiss()
                     }
                 }
             }
-            .onAppear {
+            .task {
                 isActive = true
                 scanner.startScanning()
             }
@@ -66,6 +67,7 @@ struct QRScannerView: View {
             do {
                 _ = try await APIService.shared.createPairRequest(qrCode: code)
                 errorMessage = nil
+                scanner.stopScanning()
                 dismiss()
             } catch {
                 errorMessage = error.localizedDescription
@@ -90,11 +92,11 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
     private let sessionQueue = DispatchQueue(label: "com.loveconnection.captureSession")
     private var sessionState: SessionState = .idle
     private var previewLayerDisconnectCallback: (() -> Void)?
-    
+
     private var isSessionRunning: Bool {
         return sessionState == .running
     }
-    
+
     func setPreviewLayerDisconnectCallback(_ callback: @escaping () -> Void) {
         previewLayerDisconnectCallback = callback
     }
@@ -280,9 +282,9 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
         }
 
         sessionState = .stopping
-        
+
         let semaphore = DispatchSemaphore(value: 0)
-        
+
         DispatchQueue.main.async { [weak self] in
             guard let self = self else {
                 semaphore.signal()
@@ -293,7 +295,7 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
             NotificationCenter.default.post(name: NSNotification.Name("CaptureSessionStopping"), object: nil)
             semaphore.signal()
         }
-        
+
         semaphore.wait()
         print("✅ QRScanner: Preview layer disconnected, proceeding to stop session")
 
@@ -400,7 +402,6 @@ struct QRScannerPreview: UIViewRepresentable {
 
     static func dismantleUIView(_ uiView: PreviewView, coordinator: Coordinator) {
         print("📷 QRScannerPreview: dismantleUIView called")
-        uiView.setSession(nil)
         coordinator.cleanup()
     }
 
@@ -409,6 +410,7 @@ struct QRScannerPreview: UIViewRepresentable {
         var previewView: PreviewView?
         private var readyObserver: NSObjectProtocol?
         private var stoppingObserver: NSObjectProtocol?
+        private var isDisconnected = false
 
         init(scanner: QRScanner) {
             self.scanner = scanner
@@ -425,6 +427,7 @@ struct QRScannerPreview: UIViewRepresentable {
                 guard let self = self, let previewView = self.previewView else { return }
                 if let session = self.scanner.captureSession {
                     previewView.setSession(session)
+                    self.isDisconnected = false
                     print("✅ QRScannerPreview Coordinator: Session set after ready notification")
                 }
             }
@@ -437,14 +440,19 @@ struct QRScannerPreview: UIViewRepresentable {
                 self?.disconnectPreviewLayer()
             }
         }
-        
+
         func disconnectPreviewLayer() {
+            guard !isDisconnected else {
+                print("⚠️ QRScannerPreview Coordinator: Preview layer already disconnected")
+                return
+            }
             guard let previewView = previewView else {
                 print("⚠️ QRScannerPreview Coordinator: No preview view to disconnect")
                 return
             }
             print("📷 QRScannerPreview Coordinator: Disconnecting preview layer synchronously")
             previewView.setSession(nil)
+            isDisconnected = true
         }
 
         func cleanup() {
@@ -454,7 +462,9 @@ struct QRScannerPreview: UIViewRepresentable {
             if let observer = stoppingObserver {
                 NotificationCenter.default.removeObserver(observer)
             }
-            disconnectPreviewLayer()
+            if !isDisconnected {
+                disconnectPreviewLayer()
+            }
         }
     }
 }
