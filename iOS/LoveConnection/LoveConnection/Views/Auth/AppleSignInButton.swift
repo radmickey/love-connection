@@ -12,6 +12,7 @@ struct AppleSignInButton: View {
             handleSignInResult(result)
         }
         .frame(height: 50)
+        .frame(maxWidth: 375)
         .cornerRadius(8)
     }
 
