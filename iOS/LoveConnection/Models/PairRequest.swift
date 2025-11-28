@@ -9,7 +9,7 @@ struct PairRequest: Codable, Identifiable {
     let status: String
     let createdAt: Date
     let updatedAt: Date
-    
+
     enum CodingKeys: String, CodingKey {
         case id
         case requesterId = "requester_id"

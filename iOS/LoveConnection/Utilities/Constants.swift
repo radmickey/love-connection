@@ -9,7 +9,7 @@ import Foundation
 
 struct Constants {
     static let baseURL = "https://api.loveconnection.app" // TODO: Update with actual backend URL
-    
+
     struct API {
         static let authRegister = "/api/auth/register"
         static let authLogin = "/api/auth/login"
@@ -24,7 +24,7 @@ struct Constants {
         static let stats = "/api/stats"
         static let websocket = "/ws"
     }
-    
+
     struct Colors {
         static let heartColor = "heartRed"
         static let backgroundColor = "background"
