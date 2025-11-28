@@ -79,99 +79,163 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
     private var isSessionRunning = false
 
     func startScanning() {
+        print("📷 QRScanner: startScanning() called")
+        
         guard captureSession == nil else {
+            print("📷 QRScanner: Session already exists, checking if running...")
             if !isSessionRunning {
+                print("📷 QRScanner: Starting existing session")
                 sessionQueue.async { [weak self] in
-                    self?.captureSession?.startRunning()
-                    self?.isSessionRunning = true
+                    guard let self = self, let session = self.captureSession else {
+                        print("❌ QRScanner: Session is nil")
+                        return
+                    }
+                    print("📷 QRScanner: Starting session on background queue")
+                    if !session.isRunning {
+                        session.startRunning()
+                        self.isSessionRunning = true
+                        print("✅ QRScanner: Session started")
+                    } else {
+                        print("⚠️ QRScanner: Session already running")
+                    }
                 }
+            } else {
+                print("📷 QRScanner: Session already running")
             }
             return
         }
 
+        print("📷 QRScanner: Requesting camera access...")
         AVCaptureDevice.requestAccess(for: .video) { [weak self] granted in
+            if granted {
+                print("✅ QRScanner: Camera access granted")
+            } else {
+                print("❌ QRScanner: Camera access denied")
+            }
+            
             guard granted else {
                 DispatchQueue.main.async {
-                    print("Camera access denied")
+                    print("❌ QRScanner: Camera access denied")
                 }
                 return
             }
 
             self?.sessionQueue.async {
+                print("📷 QRScanner: Setting up capture session on background queue")
                 self?.setupCaptureSession()
             }
         }
     }
 
     private func setupCaptureSession() {
+        print("📷 QRScanner: setupCaptureSession() started")
+        
         guard let videoCaptureDevice = AVCaptureDevice.default(for: .video) else {
-            print("No video capture device available")
+            print("❌ QRScanner: No video capture device available")
             return
         }
+        print("✅ QRScanner: Video capture device found: \(videoCaptureDevice.localizedName)")
 
         let videoInput: AVCaptureDeviceInput
 
         do {
             videoInput = try AVCaptureDeviceInput(device: videoCaptureDevice)
+            print("✅ QRScanner: Video input created")
         } catch {
-            print("Failed to create video input: \(error)")
+            print("❌ QRScanner: Failed to create video input: \(error)")
             return
         }
 
         let captureSession = AVCaptureSession()
-        
+        print("📷 QRScanner: AVCaptureSession created")
+
         guard captureSession.canSetSessionPreset(.high) else {
-            print("Cannot set session preset")
+            print("❌ QRScanner: Cannot set session preset to .high")
             return
         }
-        
+        print("✅ QRScanner: Can set session preset to .high")
+
+        print("📷 QRScanner: Beginning configuration...")
         captureSession.beginConfiguration()
         captureSession.sessionPreset = .high
+        print("✅ QRScanner: Session preset set to .high")
 
         guard captureSession.canAddInput(videoInput) else {
-            print("Cannot add video input")
+            print("❌ QRScanner: Cannot add video input")
             captureSession.commitConfiguration()
             return
         }
         captureSession.addInput(videoInput)
+        print("✅ QRScanner: Video input added")
 
         let metadataOutput = AVCaptureMetadataOutput()
 
         guard captureSession.canAddOutput(metadataOutput) else {
-            print("Cannot add metadata output")
+            print("❌ QRScanner: Cannot add metadata output")
             captureSession.commitConfiguration()
             return
         }
         captureSession.addOutput(metadataOutput)
+        print("✅ QRScanner: Metadata output added")
 
+        print("📷 QRScanner: Committing configuration...")
         captureSession.commitConfiguration()
+        print("✅ QRScanner: Configuration committed")
 
         metadataOutput.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
         metadataOutput.metadataObjectTypes = [.qr]
+        print("✅ QRScanner: Metadata output configured for QR codes")
 
         self.captureSession = captureSession
+        print("✅ QRScanner: Capture session stored")
 
         DispatchQueue.main.async { [weak self] in
+            print("📷 QRScanner: Posting CaptureSessionReady notification")
             NotificationCenter.default.post(name: NSNotification.Name("CaptureSessionReady"), object: self?.captureSession)
         }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
-            guard let self = self, let session = self.captureSession else { return }
+            guard let self = self, let session = self.captureSession else {
+                print("❌ QRScanner: Session is nil when trying to start")
+                return
+            }
+            print("📷 QRScanner: Starting session after delay...")
             self.sessionQueue.async {
                 if !session.isRunning {
+                    print("📷 QRScanner: Calling startRunning() on background queue")
                     session.startRunning()
                     self.isSessionRunning = true
+                    print("✅ QRScanner: Session started successfully, isRunning: \(session.isRunning)")
+                } else {
+                    print("⚠️ QRScanner: Session already running")
                 }
             }
         }
     }
 
     func stopScanning() {
+        print("📷 QRScanner: stopScanning() called")
         sessionQueue.async { [weak self] in
-            guard let captureSession = self?.captureSession else { return }
+            guard let self = self else {
+                print("❌ QRScanner: Self is nil in stopScanning")
+                return
+            }
+            
+            guard let captureSession = self.captureSession else {
+                print("⚠️ QRScanner: No capture session to stop")
+                return
+            }
+            
+            print("📷 QRScanner: Checking session state... isRunning: \(captureSession.isRunning)")
+            
             if captureSession.isRunning {
+                print("📷 QRScanner: Stopping session...")
                 captureSession.stopRunning()
-                self?.isSessionRunning = false
+                self.isSessionRunning = false
+                print("✅ QRScanner: Session stopped, isRunning: \(captureSession.isRunning)")
+            } else {
+                print("⚠️ QRScanner: Session was not running")
+                self.isSessionRunning = false
             }
         }
     }
@@ -250,16 +314,28 @@ class PreviewViewController: UIViewController {
     }
 
     func updatePreviewLayer() {
-        guard let previewLayer = previewLayer else { return }
+        guard let previewLayer = previewLayer else {
+            print("⚠️ PreviewViewController: No preview layer")
+            return
+        }
 
         if let captureSession = scanner?.captureSession {
-            if previewLayer.session == nil || previewLayer.session !== captureSession {
+            if previewLayer.session == nil {
+                print("📷 PreviewViewController: Setting session (was nil)")
                 previewLayer.session = captureSession
+            } else if previewLayer.session !== captureSession {
+                print("📷 PreviewViewController: Replacing session")
+                previewLayer.session = captureSession
+            } else {
+                print("✅ PreviewViewController: Session already set correctly")
             }
+        } else {
+            print("⚠️ PreviewViewController: No capture session available")
         }
 
         let bounds = view.bounds
         if previewLayer.frame != bounds && !bounds.isEmpty {
+            print("📷 PreviewViewController: Updating frame to \(bounds)")
             previewLayer.frame = bounds
         }
     }
