@@ -60,7 +60,23 @@ class APIService {
 
         do {
             let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .iso8601
+            let formatter = ISO8601DateFormatter()
+            formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            decoder.dateDecodingStrategy = .custom { decoder in
+                let container = try decoder.singleValueContainer()
+                let dateString = try container.decode(String.self)
+                
+                if let date = formatter.date(from: dateString) {
+                    return date
+                }
+                
+                formatter.formatOptions = [.withInternetDateTime]
+                if let date = formatter.date(from: dateString) {
+                    return date
+                }
+                
+                throw DecodingError.dataCorruptedError(in: container, debugDescription: "Invalid date format: \(dateString)")
+            }
             return try decoder.decode(T.self, from: data)
         } catch let decodingError as DecodingError {
             let errorDescription: String
