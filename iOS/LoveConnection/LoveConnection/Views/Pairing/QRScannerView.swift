@@ -74,26 +74,56 @@ struct QRScannerView: View {
 class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDelegate {
     @Published var scannedCode: String?
 
-    var captureSession: AVCaptureSession?
-    private var previewLayer: AVCaptureVideoPreviewLayer?
+    private var captureSession: AVCaptureSession?
+    private let sessionQueue = DispatchQueue(label: "com.loveconnection.captureSession")
+    private var isSessionRunning = false
 
     func startScanning() {
-        guard let videoCaptureDevice = AVCaptureDevice.default(for: .video) else { return }
+        guard captureSession == nil else {
+            if !isSessionRunning {
+                sessionQueue.async { [weak self] in
+                    self?.captureSession?.startRunning()
+                    self?.isSessionRunning = true
+                }
+            }
+            return
+        }
+
+        AVCaptureDevice.requestAccess(for: .video) { [weak self] granted in
+            guard granted else {
+                DispatchQueue.main.async {
+                    print("Camera access denied")
+                }
+                return
+            }
+
+            self?.sessionQueue.async {
+                self?.setupCaptureSession()
+            }
+        }
+    }
+
+    private func setupCaptureSession() {
+        guard let videoCaptureDevice = AVCaptureDevice.default(for: .video) else {
+            return
+        }
 
         let videoInput: AVCaptureDeviceInput
 
         do {
             videoInput = try AVCaptureDeviceInput(device: videoCaptureDevice)
         } catch {
+            print("Failed to create video input: \(error)")
             return
         }
 
         let captureSession = AVCaptureSession()
-        self.captureSession = captureSession
+        captureSession.sessionPreset = .high
 
         if captureSession.canAddInput(videoInput) {
             captureSession.addInput(videoInput)
         } else {
+            print("Cannot add video input")
             return
         }
 
@@ -105,20 +135,25 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
             metadataOutput.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
             metadataOutput.metadataObjectTypes = [.qr]
         } else {
+            print("Cannot add metadata output")
             return
         }
 
-        let sessionQueue = DispatchQueue(label: "com.loveconnection.captureSession")
-        sessionQueue.async {
-            captureSession.startRunning()
+        DispatchQueue.main.async { [weak self] in
+            self?.captureSession = captureSession
         }
+
+        captureSession.startRunning()
+        isSessionRunning = true
     }
 
     func stopScanning() {
-        guard let captureSession = captureSession else { return }
-        let sessionQueue = DispatchQueue(label: "com.loveconnection.captureSession")
-        sessionQueue.async {
-            captureSession.stopRunning()
+        sessionQueue.async { [weak self] in
+            guard let captureSession = self?.captureSession else { return }
+            if captureSession.isRunning {
+                captureSession.stopRunning()
+                self?.isSessionRunning = false
+            }
         }
     }
 
@@ -135,26 +170,51 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
 struct QRScannerPreview: UIViewControllerRepresentable {
     let scanner: QRScanner
 
-    func makeUIViewController(context: Context) -> UIViewController {
-        let viewController = UIViewController()
-        let previewLayer = AVCaptureVideoPreviewLayer()
-
-        if let captureSession = scanner.captureSession {
-            previewLayer.session = captureSession
-            previewLayer.videoGravity = .resizeAspectFill
-            viewController.view.layer.addSublayer(previewLayer)
-
-            DispatchQueue.main.async {
-                previewLayer.frame = viewController.view.bounds
-            }
-        }
-
+    func makeUIViewController(context: Context) -> PreviewViewController {
+        let viewController = PreviewViewController()
+        viewController.scanner = scanner
         return viewController
     }
 
-    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
-        if let previewLayer = uiViewController.view.layer.sublayers?.first as? AVCaptureVideoPreviewLayer {
-            previewLayer.frame = uiViewController.view.bounds
+    func updateUIViewController(_ uiViewController: PreviewViewController, context: Context) {
+        uiViewController.updatePreviewLayer()
+    }
+}
+
+class PreviewViewController: UIViewController {
+    var scanner: QRScanner?
+    private var previewLayer: AVCaptureVideoPreviewLayer?
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setupPreviewLayer()
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        previewLayer?.frame = view.bounds
+    }
+
+    private func setupPreviewLayer() {
+        guard previewLayer == nil else { return }
+
+        let layer = AVCaptureVideoPreviewLayer()
+        layer.videoGravity = .resizeAspectFill
+        view.layer.addSublayer(layer)
+        previewLayer = layer
+
+        updatePreviewLayer()
+    }
+
+    func updatePreviewLayer() {
+        guard let previewLayer = previewLayer else { return }
+
+        if let captureSession = scanner?.captureSession, previewLayer.session != captureSession {
+            previewLayer.session = captureSession
+        }
+
+        if previewLayer.frame != view.bounds {
+            previewLayer.frame = view.bounds
         }
     }
 }
