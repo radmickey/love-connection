@@ -1,5 +1,6 @@
 import SwiftUI
 import AVFoundation
+import Combine
 
 struct QRScannerView: View {
     @Environment(\.dismiss) var dismiss
@@ -73,7 +74,7 @@ struct QRScannerView: View {
 class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDelegate {
     @Published var scannedCode: String?
 
-    private var captureSession: AVCaptureSession?
+    var captureSession: AVCaptureSession?
     private var previewLayer: AVCaptureVideoPreviewLayer?
 
     func startScanning() {
