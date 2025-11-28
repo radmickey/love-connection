@@ -46,13 +46,13 @@ func (h *StatsHandler) GetStats(c *gin.Context) {
 
 	var stats models.Stats
 	err = h.db.QueryRow(
-		`SELECT
+		`SELECT 
 			COUNT(*) as total_events,
 			COALESCE(SUM(duration_seconds), 0) as total_duration_seconds,
 			COALESCE(AVG(duration_seconds), 0) as average_duration_seconds
 		FROM love_events
-		WHERE pair_id = $1`,
-		pairID,
+		WHERE (pair_id = $1 OR pair_id IS NULL) AND sender_id = $2`,
+		pairID, currentUserID,
 	).Scan(&stats.TotalEvents, &stats.TotalDurationSeconds, &stats.AverageDurationSeconds)
 
 	if err != nil {
