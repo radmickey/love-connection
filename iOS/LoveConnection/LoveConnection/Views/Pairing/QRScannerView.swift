@@ -91,15 +91,9 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
     var captureSession: AVCaptureSession?
     private let sessionQueue = DispatchQueue(label: "com.loveconnection.captureSession")
     private var sessionState: SessionState = .idle
-    private var previewLayerDisconnectCallback: (() -> Void)?
 
     private var isSessionRunning: Bool {
         return sessionState == .running
-    }
-
-    func setPreviewLayerDisconnectCallback(_ callback: @escaping () -> Void) {
-        previewLayerDisconnectCallback = callback
-        print("✅ QRScanner: Preview layer disconnect callback set")
     }
 
     func startScanning() {
@@ -284,32 +278,6 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
 
         sessionState = .stopping
 
-        let semaphore = DispatchSemaphore(value: 0)
-
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else {
-                print("⚠️ QRScanner: Self is nil in stopScanning callback")
-                semaphore.signal()
-                return
-            }
-            print("📷 QRScanner: Disconnecting preview layer synchronously on main thread")
-            if let callback = self.previewLayerDisconnectCallback {
-                callback()
-                print("✅ QRScanner: Preview layer disconnect callback executed")
-            } else {
-                print("⚠️ QRScanner: Preview layer disconnect callback is nil, posting notification only")
-            }
-            NotificationCenter.default.post(name: NSNotification.Name("CaptureSessionStopping"), object: nil)
-            semaphore.signal()
-        }
-
-        let timeoutResult = semaphore.wait(timeout: .now() + 1.0)
-        if timeoutResult == .timedOut {
-            print("⚠️ QRScanner: Timeout waiting for preview layer disconnection, proceeding anyway")
-        } else {
-            print("✅ QRScanner: Preview layer disconnected, proceeding to stop session")
-        }
-
         sessionQueue.async { [weak self] in
             guard let self = self else { return }
             guard self.sessionState == .stopping else {
@@ -322,14 +290,7 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
             if captureSession.isRunning {
                 print("📷 QRScanner: Stopping session on background thread...")
                 captureSession.stopRunning()
-
-                var attempts = 0
-                while captureSession.isRunning && attempts < 20 {
-                    Thread.sleep(forTimeInterval: 0.05)
-                    attempts += 1
-                }
-
-                print("✅ QRScanner: Session stopped, isRunning: \(captureSession.isRunning) after \(attempts) attempts")
+                print("✅ QRScanner: Session stopRunning() called")
             } else {
                 print("⚠️ QRScanner: Session was not running")
             }
@@ -369,12 +330,7 @@ struct QRScannerPreview: UIViewRepresentable {
     let scanner: QRScanner
 
     func makeCoordinator() -> Coordinator {
-        let coordinator = Coordinator(scanner: scanner)
-        scanner.setPreviewLayerDisconnectCallback { [weak coordinator] in
-            print("📷 QRScannerPreview: Callback invoked, disconnecting preview layer")
-            coordinator?.disconnectPreviewLayer()
-        }
-        return coordinator
+        Coordinator(scanner: scanner)
     }
 
     func makeUIView(context: Context) -> PreviewView {
@@ -413,7 +369,8 @@ struct QRScannerPreview: UIViewRepresentable {
     }
 
     static func dismantleUIView(_ uiView: PreviewView, coordinator: Coordinator) {
-        print("📷 QRScannerPreview: dismantleUIView called")
+        print("📷 QRScannerPreview: dismantleUIView called - system will handle preview layer cleanup")
+        uiView.setSession(nil)
         coordinator.cleanup()
     }
 
@@ -421,16 +378,14 @@ struct QRScannerPreview: UIViewRepresentable {
         let scanner: QRScanner
         var previewView: PreviewView?
         private var readyObserver: NSObjectProtocol?
-        private var stoppingObserver: NSObjectProtocol?
-        private var isDisconnected = false
 
         init(scanner: QRScanner) {
             self.scanner = scanner
             super.init()
-            setupObservers()
+            setupObserver()
         }
 
-        private func setupObservers() {
+        private func setupObserver() {
             readyObserver = NotificationCenter.default.addObserver(
                 forName: NSNotification.Name("CaptureSessionReady"),
                 object: nil,
@@ -439,43 +394,14 @@ struct QRScannerPreview: UIViewRepresentable {
                 guard let self = self, let previewView = self.previewView else { return }
                 if let session = self.scanner.captureSession {
                     previewView.setSession(session)
-                    self.isDisconnected = false
                     print("✅ QRScannerPreview Coordinator: Session set after ready notification")
                 }
             }
-
-            stoppingObserver = NotificationCenter.default.addObserver(
-                forName: NSNotification.Name("CaptureSessionStopping"),
-                object: nil,
-                queue: .main
-            ) { [weak self] _ in
-                self?.disconnectPreviewLayer()
-            }
-        }
-
-        func disconnectPreviewLayer() {
-            guard !isDisconnected else {
-                print("⚠️ QRScannerPreview Coordinator: Preview layer already disconnected")
-                return
-            }
-            guard let previewView = previewView else {
-                print("⚠️ QRScannerPreview Coordinator: No preview view to disconnect")
-                return
-            }
-            print("📷 QRScannerPreview Coordinator: Disconnecting preview layer synchronously")
-            previewView.setSession(nil)
-            isDisconnected = true
         }
 
         func cleanup() {
             if let observer = readyObserver {
                 NotificationCenter.default.removeObserver(observer)
-            }
-            if let observer = stoppingObserver {
-                NotificationCenter.default.removeObserver(observer)
-            }
-            if !isDisconnected {
-                disconnectPreviewLayer()
             }
         }
     }
