@@ -2,6 +2,7 @@ import SwiftUI
 
 struct HeartButtonView: View {
     @EnvironmentObject var appState: AppState
+    @StateObject private var wsService = WebSocketService.shared
     @State private var isPressed = false
     @State private var startTime: Date?
     @State private var duration: TimeInterval = 0
@@ -60,6 +61,20 @@ struct HeartButtonView: View {
                 }
             }
             .navigationTitle("Love Connection")
+        }
+        .onAppear {
+            if appState.isAuthenticated && appState.currentPair != nil {
+                wsService.connect()
+            }
+        }
+        .onDisappear {
+            wsService.disconnect()
+        }
+        .onChange(of: wsService.receivedLoveEvent) { event in
+            if let event = event {
+                // Handle received love event
+                print("Received love event: \(event.durationSeconds) seconds")
+            }
         }
     }
     

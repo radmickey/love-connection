@@ -13,12 +13,26 @@ class WebSocketService: ObservableObject {
     
     func connect() {
         guard let token = KeychainHelper.shared.getToken(),
-              let url = URL(string: Constants.baseURL.replacingOccurrences(of: "https://", with: "wss://").replacingOccurrences(of: "http://", with: "ws://") + Constants.API.websocket + "?token=\(token)") else {
+              let baseURL = URL(string: Constants.baseURL) else {
             return
         }
         
+        var wsURL = baseURL
+        if wsURL.scheme == "https" {
+            wsURL = URL(string: Constants.baseURL.replacingOccurrences(of: "https://", with: "wss://")) ?? baseURL
+        } else if wsURL.scheme == "http" {
+            wsURL = URL(string: Constants.baseURL.replacingOccurrences(of: "http://", with: "ws://")) ?? baseURL
+        }
+        
+        guard let wsPath = URL(string: Constants.API.websocket, relativeTo: wsURL) else {
+            return
+        }
+        
+        var request = URLRequest(url: wsPath)
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        
         let session = URLSession(configuration: .default)
-        webSocketTask = session.webSocketTask(with: url)
+        webSocketTask = session.webSocketTask(with: request)
         webSocketTask?.resume()
         
         isConnected = true

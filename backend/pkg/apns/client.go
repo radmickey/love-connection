@@ -5,7 +5,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -21,7 +21,7 @@ type Client struct {
 }
 
 func NewClient(keyPath, keyID, teamID, bundleID string) (*Client, error) {
-	keyData, err := ioutil.ReadFile(keyPath)
+	keyData, err := os.ReadFile(keyPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read key file: %w", err)
 	}
