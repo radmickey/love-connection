@@ -40,7 +40,6 @@
 		257E58C72EDA25160026A57B /* PairingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 257E589D2EDA25160026A57B /* PairingView.swift */; };
 		257E58C82EDA25160026A57B /* HeartButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 257E589A2EDA25160026A57B /* HeartButtonView.swift */; };
 		25B9A02C2EDA403B00053520 /* FeatureFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25B9A02B2EDA403B00053520 /* FeatureFlags.swift */; };
-		25B9A02E2EDA406200053520 /* FeatureFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25B9A02D2EDA406200053520 /* FeatureFlags.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -97,7 +96,6 @@
 		257E58A62EDA25160026A57B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		257E58A92EDA25160026A57B /* LoveConnectionApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoveConnectionApp.swift; sourceTree = "<group>"; };
 		25B9A02B2EDA403B00053520 /* FeatureFlags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureFlags.swift; sourceTree = "<group>"; };
-		25B9A02D2EDA406200053520 /* FeatureFlags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureFlags.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -170,7 +168,6 @@
 		257E58892EDA25160026A57B /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				25B9A02D2EDA406200053520 /* FeatureFlags.swift */,
 				257E58832EDA25160026A57B /* APIResponse.swift */,
 				257E58842EDA25160026A57B /* LoveEvent.swift */,
 				257E58852EDA25160026A57B /* Pair.swift */,
@@ -428,7 +425,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				25B9A02E2EDA406200053520 /* FeatureFlags.swift in Sources */,
 				257E58AB2EDA25160026A57B /* AppState.swift in Sources */,
 				257E58AC2EDA25160026A57B /* APIResponse.swift in Sources */,
 				257E58AD2EDA25160026A57B /* WebSocketService.swift in Sources */,
