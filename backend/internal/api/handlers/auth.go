@@ -141,7 +141,7 @@ func (h *AuthHandler) AppleSignIn(c *gin.Context) {
 		if req.Username != nil && *req.Username != "" {
 			username = *req.Username
 		}
-		
+
 		if username == "" {
 			username = "User"
 		}
