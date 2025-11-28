@@ -227,6 +227,9 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
             return
         }
 
+        print("📷 QRScanner: Notifying preview layer to disconnect")
+        NotificationCenter.default.post(name: NSNotification.Name("CaptureSessionStopping"), object: nil)
+        
         sessionQueue.async { [weak self] in
             guard let self = self else {
                 print("❌ QRScanner: Self is nil in stopScanning")
@@ -277,11 +280,12 @@ class PreviewViewController: UIViewController {
     var scanner: QRScanner?
     private var previewLayer: AVCaptureVideoPreviewLayer?
     private var readyObserver: NSObjectProtocol?
+    private var stoppingObserver: NSObjectProtocol?
 
     override func viewDidLoad() {
         super.viewDidLoad()
         setupPreviewLayer()
-        setupObserver()
+        setupObservers()
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -298,9 +302,13 @@ class PreviewViewController: UIViewController {
         if let observer = readyObserver {
             NotificationCenter.default.removeObserver(observer)
         }
+        if let observer = stoppingObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
+        previewLayer?.session = nil
     }
 
-    private func setupObserver() {
+    private func setupObservers() {
         readyObserver = NotificationCenter.default.addObserver(
             forName: NSNotification.Name("CaptureSessionReady"),
             object: nil,
@@ -308,6 +316,20 @@ class PreviewViewController: UIViewController {
         ) { [weak self] notification in
             self?.updatePreviewLayer()
         }
+        
+        stoppingObserver = NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("CaptureSessionStopping"),
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.disconnectPreviewLayer()
+        }
+    }
+    
+    private func disconnectPreviewLayer() {
+        guard let previewLayer = previewLayer, previewLayer.session != nil else { return }
+        print("📷 PreviewViewController: Disconnecting preview layer from session")
+        previewLayer.session = nil
     }
 
     private func setupPreviewLayer() {
