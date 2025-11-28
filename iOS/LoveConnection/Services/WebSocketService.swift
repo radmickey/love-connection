@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 
 class WebSocketService: ObservableObject {
     static let shared = WebSocketService()
@@ -12,25 +13,25 @@ class WebSocketService: ObservableObject {
     private init() {}
 
     func connect() {
-        guard let token = KeychainHelper.shared.getToken(),
-              let baseURL = URL(string: Constants.baseURL) else {
+        guard let token = KeychainHelper.shared.getToken() else {
+            return
+        }
+        
+        let baseURLString = Config.shared.baseURL
+        var wsURLString = baseURLString
+        if baseURLString.hasPrefix("https://") {
+            wsURLString = baseURLString.replacingOccurrences(of: "https://", with: "wss://")
+        } else if baseURLString.hasPrefix("http://") {
+            wsURLString = baseURLString.replacingOccurrences(of: "http://", with: "ws://")
+        }
+        
+        guard let wsURL = URL(string: wsURLString + Constants.API.websocket) else {
             return
         }
 
-        var wsURL = baseURL
-        if wsURL.scheme == "https" {
-            wsURL = URL(string: Constants.baseURL.replacingOccurrences(of: "https://", with: "wss://")) ?? baseURL
-        } else if wsURL.scheme == "http" {
-            wsURL = URL(string: Constants.baseURL.replacingOccurrences(of: "http://", with: "ws://")) ?? baseURL
-        }
-
-        guard let wsPath = URL(string: Constants.API.websocket, relativeTo: wsURL) else {
-            return
-        }
-
-        var request = URLRequest(url: wsPath)
+        var request = URLRequest(url: wsURL)
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-
+        
         let session = URLSession(configuration: .default)
         webSocketTask = session.webSocketTask(with: request)
         webSocketTask?.resume()
