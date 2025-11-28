@@ -84,9 +84,14 @@ struct LoginView: View {
             .sheet(isPresented: $showingSignUp) {
                 SignUpView()
             }
-            .onTapGesture {
-                hideKeyboard()
-            }
+            .background(
+                Color.clear
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        print("🔵 LoginView background tapped (dismissing keyboard)")
+                        hideKeyboard()
+                    }
+            )
             .alert("Error", isPresented: $showError) {
                 Button("OK", role: .cancel) { }
             } message: {
