@@ -287,17 +287,27 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
 
         DispatchQueue.main.async { [weak self] in
             guard let self = self else {
+                print("⚠️ QRScanner: Self is nil in stopScanning callback")
                 semaphore.signal()
                 return
             }
             print("📷 QRScanner: Disconnecting preview layer synchronously on main thread")
-            self.previewLayerDisconnectCallback?()
+            if let callback = self.previewLayerDisconnectCallback {
+                callback()
+                print("✅ QRScanner: Preview layer disconnect callback executed")
+            } else {
+                print("⚠️ QRScanner: Preview layer disconnect callback is nil, posting notification only")
+            }
             NotificationCenter.default.post(name: NSNotification.Name("CaptureSessionStopping"), object: nil)
             semaphore.signal()
         }
 
-        semaphore.wait()
-        print("✅ QRScanner: Preview layer disconnected, proceeding to stop session")
+        let timeoutResult = semaphore.wait(timeout: .now() + 1.0)
+        if timeoutResult == .timedOut {
+            print("⚠️ QRScanner: Timeout waiting for preview layer disconnection, proceeding anyway")
+        } else {
+            print("✅ QRScanner: Preview layer disconnected, proceeding to stop session")
+        }
 
         sessionQueue.async { [weak self] in
             guard let self = self else { return }
