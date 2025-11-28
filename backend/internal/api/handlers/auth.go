@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"database/sql"
+	"log"
 	"love-connection/backend/internal/models"
 	"love-connection/backend/internal/services"
 	"net/http"
@@ -119,9 +120,12 @@ func (h *AuthHandler) Login(c *gin.Context) {
 func (h *AuthHandler) AppleSignIn(c *gin.Context) {
 	var req models.AppleSignInRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Printf("❌ Apple Sign In: Invalid request: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	log.Printf("🔵 Apple Sign In: UserIdentifier=%s, Username=%v", req.UserIdentifier, req.Username)
 
 	var user models.User
 	var userID uuid.UUID
@@ -132,10 +136,13 @@ func (h *AuthHandler) AppleSignIn(c *gin.Context) {
 	).Scan(&user.ID, &user.Email, &user.AppleID, &user.Username, &user.CreatedAt)
 
 	if err == sql.ErrNoRows {
+		log.Printf("🔵 Apple Sign In: User not found, creating new user")
 		username := "User"
 		if req.Username != nil && *req.Username != "" {
 			username = *req.Username
 		}
+		
+		log.Printf("🔵 Apple Sign In: Creating user with apple_id=%s, username=%s", req.UserIdentifier, username)
 
 		err = h.db.QueryRow(
 			"INSERT INTO users (apple_id, username) VALUES ($1, $2) RETURNING id",
@@ -143,9 +150,12 @@ func (h *AuthHandler) AppleSignIn(c *gin.Context) {
 		).Scan(&userID)
 
 		if err != nil {
+			log.Printf("❌ Apple Sign In: Failed to create user: %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user: " + err.Error()})
 			return
 		}
+		
+		log.Printf("✅ Apple Sign In: User created with ID=%s", userID)
 
 		err = h.db.QueryRow(
 			"SELECT id, email, apple_id, username, created_at FROM users WHERE id = $1",
