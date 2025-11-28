@@ -119,7 +119,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 func (h *AuthHandler) AppleSignIn(c *gin.Context) {
 	log.Printf("🔵 Apple Sign In: Handler called")
-	
+
 	var req models.AppleSignInRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Printf("❌ Apple Sign In: Invalid request: %v", err)
@@ -200,4 +200,3 @@ func (h *AuthHandler) AppleSignIn(c *gin.Context) {
 		"data":    authResponse,
 	})
 }
-
