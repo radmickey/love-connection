@@ -79,7 +79,7 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_cache_bypass $http_upgrade;
-        
+
         # WebSocket support
         proxy_set_header Connection "upgrade";
         proxy_read_timeout 86400;
@@ -172,10 +172,10 @@ import (
 
 func main() {
     // ... your existing code ...
-    
+
     certFile := os.Getenv("SSL_CERT_FILE") // e.g., "/etc/ssl/certs/server.crt"
     keyFile := os.Getenv("SSL_KEY_FILE")   // e.g., "/etc/ssl/private/server.key"
-    
+
     if certFile != "" && keyFile != "" {
         log.Fatal(http.ListenAndServeTLS(":443", certFile, keyFile, router))
     } else {
