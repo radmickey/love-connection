@@ -98,7 +98,18 @@ class APIService {
     }
 
     func respondPairRequest(requestId: UUID, accept: Bool) async throws -> Pair? {
-        let body = try JSONEncoder().encode(["request_id": requestId.uuidString, "accept": accept])
+        struct RespondRequest: Codable {
+            let requestId: String
+            let accept: Bool
+            
+            enum CodingKeys: String, CodingKey {
+                case requestId = "request_id"
+                case accept
+            }
+        }
+        
+        let requestBody = RespondRequest(requestId: requestId.uuidString, accept: accept)
+        let body = try JSONEncoder().encode(requestBody)
         let response: APIResponse<Pair> = try await request(APIResponse<Pair>.self, endpoint: "/api/pairs/respond", method: "POST", body: body)
         return response.data
     }
