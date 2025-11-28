@@ -123,18 +123,12 @@ func (h *AuthHandler) AppleSignIn(c *gin.Context) {
 		return
 	}
 
-	appleUserID, err := services.ExtractAppleUserID(req.IdentityToken)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid identity token: " + err.Error()})
-		return
-	}
-
 	var user models.User
 	var userID uuid.UUID
 
-	err = h.db.QueryRow(
+	err := h.db.QueryRow(
 		"SELECT id, email, apple_id, username, created_at FROM users WHERE apple_id = $1",
-		appleUserID,
+		req.UserIdentifier,
 	).Scan(&user.ID, &user.Email, &user.AppleID, &user.Username, &user.CreatedAt)
 
 	if err == sql.ErrNoRows {
@@ -145,7 +139,7 @@ func (h *AuthHandler) AppleSignIn(c *gin.Context) {
 
 		err = h.db.QueryRow(
 			"INSERT INTO users (apple_id, username) VALUES ($1, $2) RETURNING id",
-			appleUserID, username,
+			req.UserIdentifier, username,
 		).Scan(&userID)
 
 		if err != nil {
