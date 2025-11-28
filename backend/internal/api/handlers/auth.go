@@ -141,7 +141,7 @@ func (h *AuthHandler) AppleSignIn(c *gin.Context) {
 		if req.Username != nil && *req.Username != "" {
 			username = *req.Username
 		}
-		
+
 		log.Printf("🔵 Apple Sign In: Creating user with apple_id=%s, username=%s", req.UserIdentifier, username)
 
 		err = h.db.QueryRow(
@@ -154,7 +154,7 @@ func (h *AuthHandler) AppleSignIn(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user: " + err.Error()})
 			return
 		}
-		
+
 		log.Printf("✅ Apple Sign In: User created with ID=%s", userID)
 
 		err = h.db.QueryRow(
