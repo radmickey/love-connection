@@ -163,10 +163,11 @@ func (h *UserHandler) GenerateInviteLink(c *gin.Context) {
 		return
 	}
 
-	// Генерируем ссылку с username
-	// В продакшене это должен быть реальный домен приложения
-	// Важно: экранируем username для безопасного использования в URL
-	inviteLink := "loveconnection://add?username=" + url.QueryEscape(user.Username)
+	// Генерируем HTTP ссылку, которая будет открывать приложение через редирект
+	// Формат: https://love-couple-connect.duckdns.org/add?username=...
+	// При переходе по этой ссылке бэкенд редиректит на deep link loveconnection://add?username=...
+	baseURL := "https://love-couple-connect.duckdns.org"
+	inviteLink := baseURL + "/add?username=" + url.QueryEscape(user.Username)
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,

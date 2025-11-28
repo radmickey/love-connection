@@ -2,7 +2,6 @@ import SwiftUI
 
 struct ProfileView: View {
     @EnvironmentObject var appState: AppState
-    @Environment(\.dismiss) var dismiss
     @State private var username: String = ""
     @State private var isEditing: Bool = false
     @State private var isLoading: Bool = false
@@ -82,13 +81,6 @@ struct ProfileView: View {
             }
             .navigationTitle("Profile")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Close") {
-                        dismiss()
-                    }
-                }
-            }
             .onAppear {
                 if let user = appState.currentUser {
                     username = user.username

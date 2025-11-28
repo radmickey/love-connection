@@ -2,6 +2,8 @@ package api
 
 import (
 	"database/sql"
+	"net/http"
+	"net/url"
 	"love-connection/backend/internal/api/handlers"
 	"love-connection/backend/internal/api/middleware"
 	"love-connection/backend/internal/websocket"
@@ -18,6 +20,18 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, hub *websocket.Hub) {
 	healthHandler := handlers.NewHealthHandler(db)
 	r.GET("/health", healthHandler.HealthCheck)
 	r.GET("/api/feature-flags", handlers.GetFeatureFlags)
+
+	// Endpoint для редиректа на deep link при переходе по invite ссылке
+	r.GET("/add", func(c *gin.Context) {
+		username := c.Query("username")
+		if username == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Username parameter is required"})
+			return
+		}
+		// Редиректим на deep link для открытия приложения
+		deepLink := "loveconnection://add?username=" + url.QueryEscape(username)
+		c.Redirect(http.StatusFound, deepLink)
+	})
 
 	api := r.Group("/api")
 	{

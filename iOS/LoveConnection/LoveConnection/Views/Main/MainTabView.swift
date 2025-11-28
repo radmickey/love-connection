@@ -20,6 +20,11 @@ struct MainTabView: View {
                     Label("Stats", systemImage: "chart.bar.fill")
                 }
 
+            ProfileView()
+                .tabItem {
+                    Label("Profile", systemImage: "person.circle.fill")
+                }
+
             SettingsView()
                 .tabItem {
                     Label("Settings", systemImage: "gearshape.fill")

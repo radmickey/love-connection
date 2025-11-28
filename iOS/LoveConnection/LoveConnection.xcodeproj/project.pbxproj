@@ -43,6 +43,9 @@
 		25B9A03D2EDA459F00053520 /* AppIcon.svg in Resources */ = {isa = PBXBuildFile; fileRef = 25B9A03B2EDA459F00053520 /* AppIcon.svg */; };
 		25B9A03F2EDA460600053520 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 25B9A03E2EDA460600053520 /* Assets.xcassets */; };
 		25B9A0552EDA5BA000053520 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25B9A0532EDA5BA000053520 /* ProfileView.swift */; };
+		25B9A0562EDA5BA000053520 /* UsernameInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25B9A0572EDA5BA000053520 /* UsernameInputView.swift */; };
+		25B9A0582EDA5BA000053520 /* UsernameSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25B9A0592EDA5BA000053520 /* UsernameSearchView.swift */; };
+		25B9A05A2EDA5BA000053520 /* InviteLinkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25B9A05B2EDA5BA000053520 /* InviteLinkView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -103,6 +106,9 @@
 		25B9A03E2EDA460600053520 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		25B9A0402EDA47D700053520 /* LoveConnection.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LoveConnection.entitlements; sourceTree = "<group>"; };
 		25B9A0532EDA5BA000053520 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		25B9A0572EDA5BA000053520 /* UsernameInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsernameInputView.swift; sourceTree = "<group>"; };
+		25B9A0592EDA5BA000053520 /* UsernameSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsernameSearchView.swift; sourceTree = "<group>"; };
+		25B9A05B2EDA5BA000053520 /* InviteLinkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteLinkView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -216,6 +222,7 @@
 				257E58932EDA25160026A57B /* AppleSignInButton.swift */,
 				257E58942EDA25160026A57B /* LoginView.swift */,
 				257E58952EDA25160026A57B /* SignUpView.swift */,
+				25B9A0572EDA5BA000053520 /* UsernameInputView.swift */,
 			);
 			path = Auth;
 			sourceTree = "<group>";
@@ -245,6 +252,8 @@
 				257E589E2EDA25160026A57B /* PairRequestsView.swift */,
 				257E589F2EDA25160026A57B /* QRCodeDisplayView.swift */,
 				257E58A02EDA25160026A57B /* QRScannerView.swift */,
+				25B9A0592EDA5BA000053520 /* UsernameSearchView.swift */,
+				25B9A05B2EDA5BA000053520 /* InviteLinkView.swift */,
 			);
 			path = Pairing;
 			sourceTree = "<group>";
@@ -488,6 +497,9 @@
 				257E58C62EDA25160026A57B /* AuthService.swift in Sources */,
 				257E58C72EDA25160026A57B /* PairingView.swift in Sources */,
 				257E58C82EDA25160026A57B /* HeartButtonView.swift in Sources */,
+				25B9A0562EDA5BA000053520 /* UsernameInputView.swift in Sources */,
+				25B9A0582EDA5BA000053520 /* UsernameSearchView.swift in Sources */,
+				25B9A05A2EDA5BA000053520 /* InviteLinkView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
