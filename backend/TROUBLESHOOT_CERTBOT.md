@@ -98,7 +98,7 @@ This will ask you to add a TXT record to DNS. For DuckDNS, you can add it via th
 **Solution**: Wait longer (up to 1 hour), or use a different DNS provider
 
 ### Issue: Port 80 blocked by firewall
-**Solution**: 
+**Solution**:
 ```bash
 sudo ufw allow 80/tcp
 sudo ufw allow 443/tcp
@@ -115,7 +115,7 @@ sudo ufw reload
 - Use a different port (not recommended)
 
 ### Issue: DuckDNS update not working
-**Solution**: 
+**Solution**:
 - Check DuckDNS token is correct
 - Try updating IP via DuckDNS API:
   ```bash
