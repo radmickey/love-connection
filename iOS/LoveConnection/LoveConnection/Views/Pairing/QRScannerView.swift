@@ -200,24 +200,21 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
                 print("❌ QRScanner: Session is nil when trying to start")
                 return
             }
-            print("📷 QRScanner: Starting session after delay...")
-            self.sessionQueue.async {
-                if !session.isRunning {
-                    print("📷 QRScanner: Calling startRunning() on background queue")
-                    session.startRunning()
-                    self.isSessionRunning = true
-                    print("✅ QRScanner: Session started successfully, isRunning: \(session.isRunning)")
-                } else {
-                    print("⚠️ QRScanner: Session already running")
-                }
+            print("📷 QRScanner: Starting session on main thread...")
+            if !session.isRunning {
+                session.startRunning()
+                self.isSessionRunning = true
+                print("✅ QRScanner: Session started successfully, isRunning: \(session.isRunning)")
+            } else {
+                print("⚠️ QRScanner: Session already running")
             }
         }
     }
 
     func stopScanning() {
         print("📷 QRScanner: stopScanning() called")
-
-        sessionQueue.async { [weak self] in
+        
+        DispatchQueue.main.async { [weak self] in
             guard let self = self else {
                 print("❌ QRScanner: Self is nil in stopScanning")
                 return
@@ -225,26 +222,25 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
 
             guard let captureSession = self.captureSession else {
                 print("⚠️ QRScanner: No capture session to stop")
-                DispatchQueue.main.async {
-                    NotificationCenter.default.post(name: NSNotification.Name("CaptureSessionStopping"), object: nil)
-                }
+                NotificationCenter.default.post(name: NSNotification.Name("CaptureSessionStopping"), object: nil)
                 return
             }
 
             print("📷 QRScanner: Checking session state... isRunning: \(captureSession.isRunning)")
 
             if captureSession.isRunning {
-                print("📷 QRScanner: Stopping session...")
-                captureSession.stopRunning()
-                self.isSessionRunning = false
-                print("✅ QRScanner: Session stopped")
+                print("📷 QRScanner: Disconnecting preview layer before stopping session")
+                NotificationCenter.default.post(name: NSNotification.Name("CaptureSessionStopping"), object: nil)
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    print("📷 QRScanner: Stopping session on main thread...")
+                    captureSession.stopRunning()
+                    self.isSessionRunning = false
+                    print("✅ QRScanner: Session stopped")
+                }
             } else {
                 print("⚠️ QRScanner: Session was not running")
                 self.isSessionRunning = false
-            }
-
-            DispatchQueue.main.async {
-                print("📷 QRScanner: Posting CaptureSessionStopping notification")
                 NotificationCenter.default.post(name: NSNotification.Name("CaptureSessionStopping"), object: nil)
             }
         }
