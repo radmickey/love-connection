@@ -19,3 +19,18 @@ type CreatePairRequest struct {
 	QRCode string `json:"qr_code" binding:"required"`
 }
 
+type PairRequest struct {
+	ID          uuid.UUID `json:"id" db:"id"`
+	RequesterID uuid.UUID `json:"requester_id" db:"requester_id"`
+	RequestedID uuid.UUID `json:"requested_id" db:"requested_id"`
+	Requester   *User     `json:"requester,omitempty"`
+	Requested   *User     `json:"requested,omitempty"`
+	Status      string    `json:"status" db:"status"`
+	CreatedAt   time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at" db:"updated_at"`
+}
+
+type RespondPairRequest struct {
+	RequestID uuid.UUID `json:"request_id" binding:"required"`
+	Accept    bool      `json:"accept" binding:"required"`
+}

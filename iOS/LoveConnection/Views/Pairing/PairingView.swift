@@ -35,6 +35,12 @@ struct PairingView: View {
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.bordered)
+                    
+                    NavigationLink(destination: PairRequestsView()) {
+                        Label("Pair Requests", systemImage: "person.2.fill")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
                 }
                 .padding(.horizontal)
                 

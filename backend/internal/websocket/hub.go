@@ -105,7 +105,7 @@ func (h *Hub) BroadcastLoveEvent(event models.LoveEvent, recipientID uuid.UUID) 
 
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	
+
 	if client, ok := h.clients[recipientID]; ok {
 		select {
 		case client.send <- data:

@@ -85,13 +85,24 @@ class APIService {
         return pair
     }
     
-    func createPair(qrCode: String) async throws -> Pair {
+    func createPairRequest(qrCode: String) async throws -> PairRequest {
         let body = try JSONEncoder().encode(["qr_code": qrCode])
-        let response: APIResponse<Pair> = try await request(APIResponse<Pair>.self, endpoint: Constants.API.pairsCreate, method: "POST", body: body)
-        guard let pair = response.data else {
+        let response: APIResponse<PairRequest> = try await request(APIResponse<PairRequest>.self, endpoint: "/api/pairs/request", method: "POST", body: body)
+        guard let request = response.data else {
             throw APIError.invalidResponse
         }
-        return pair
+        return request
+    }
+    
+    func respondPairRequest(requestId: UUID, accept: Bool) async throws -> Pair? {
+        let body = try JSONEncoder().encode(["request_id": requestId.uuidString, "accept": accept])
+        let response: APIResponse<Pair> = try await request(APIResponse<Pair>.self, endpoint: "/api/pairs/respond", method: "POST", body: body)
+        return response.data
+    }
+    
+    func getPairRequests() async throws -> [PairRequest] {
+        let response: APIResponse<[PairRequest]> = try await request(APIResponse<[PairRequest]>.self, endpoint: "/api/pairs/requests")
+        return response.data ?? []
     }
     
     // MARK: - Love Events

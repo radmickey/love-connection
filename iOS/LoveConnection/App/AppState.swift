@@ -8,14 +8,14 @@ class AppState: ObservableObject {
     @Published var currentPair: Pair?
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
-    
+
     private let authService = AuthService.shared
     private let apiService = APIService.shared
-    
+
     init() {
         checkAuthenticationStatus()
     }
-    
+
     func checkAuthenticationStatus() {
         Task {
             if let token = KeychainHelper.shared.getToken() {
@@ -31,7 +31,7 @@ class AppState: ObservableObject {
             }
         }
     }
-    
+
     func loadCurrentPair() async {
         do {
             self.currentPair = try await apiService.getCurrentPair()
@@ -42,7 +42,7 @@ class AppState: ObservableObject {
             self.currentPair = nil
         }
     }
-    
+
     func logout() {
         WebSocketService.shared.disconnect()
         KeychainHelper.shared.deleteToken()
