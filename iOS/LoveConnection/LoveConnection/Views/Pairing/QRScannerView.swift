@@ -195,7 +195,7 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
 
         DispatchQueue.main.async { [weak self] in
             print("📷 QRScanner: Posting CaptureSessionReady notification")
-            NotificationCenter.default.post(name: NSNotification.Name("CaptureSessionReady"), object: self?.captureSession)
+            NotificationCenter.default.post(name: NSNotification.Name("CaptureSessionReady"), object: nil)
         }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
@@ -227,9 +227,6 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
             return
         }
 
-        print("📷 QRScanner: Notifying preview layer to disconnect")
-        NotificationCenter.default.post(name: NSNotification.Name("CaptureSessionStopping"), object: nil)
-        
         sessionQueue.async { [weak self] in
             guard let self = self else {
                 print("❌ QRScanner: Self is nil in stopScanning")
@@ -262,117 +259,58 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
     }
 }
 
-struct QRScannerPreview: UIViewControllerRepresentable {
-    let scanner: QRScanner
-
-    func makeUIViewController(context: Context) -> PreviewViewController {
-        let viewController = PreviewViewController()
-        viewController.scanner = scanner
-        return viewController
+class PreviewView: UIView {
+    override class var layerClass: AnyClass {
+        return AVCaptureVideoPreviewLayer.self
     }
-
-    func updateUIViewController(_ uiViewController: PreviewViewController, context: Context) {
-        uiViewController.updatePreviewLayer()
+    
+    var previewLayer: AVCaptureVideoPreviewLayer {
+        return layer as! AVCaptureVideoPreviewLayer
+    }
+    
+    func setSession(_ session: AVCaptureSession?) {
+        previewLayer.session = session
     }
 }
 
-class PreviewViewController: UIViewController {
-    var scanner: QRScanner?
-    private var previewLayer: AVCaptureVideoPreviewLayer?
-    private var readyObserver: NSObjectProtocol?
-    private var stoppingObserver: NSObjectProtocol?
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        setupPreviewLayer()
-        setupObservers()
-    }
-
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        updatePreviewLayer()
-    }
-
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        previewLayer?.frame = view.bounds
-    }
-
-    deinit {
-        if let observer = readyObserver {
-            NotificationCenter.default.removeObserver(observer)
-        }
-        if let observer = stoppingObserver {
-            NotificationCenter.default.removeObserver(observer)
-        }
-        previewLayer?.session = nil
-    }
-
-    private func setupObservers() {
-        readyObserver = NotificationCenter.default.addObserver(
-            forName: NSNotification.Name("CaptureSessionReady"),
-            object: nil,
-            queue: .main
-        ) { [weak self] notification in
-            self?.updatePreviewLayer()
+struct QRScannerPreview: UIViewRepresentable {
+    let scanner: QRScanner
+    
+    func makeUIView(context: Context) -> PreviewView {
+        let previewView = PreviewView()
+        previewView.backgroundColor = .black
+        previewView.previewLayer.videoGravity = .resizeAspectFill
+        
+        if let session = scanner.captureSession {
+            previewView.setSession(session)
+            print("✅ QRScannerPreview: Session set in makeUIView")
+        } else {
+            print("⚠️ QRScannerPreview: No session available in makeUIView")
+            NotificationCenter.default.addObserver(
+                forName: NSNotification.Name("CaptureSessionReady"),
+                object: nil,
+                queue: .main
+            ) { notification in
+                if let session = scanner.captureSession {
+                    previewView.setSession(session)
+                    print("✅ QRScannerPreview: Session set after ready notification")
+                }
+            }
         }
         
-        stoppingObserver = NotificationCenter.default.addObserver(
-            forName: NSNotification.Name("CaptureSessionStopping"),
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            self?.disconnectPreviewLayer()
-        }
+        return previewView
     }
     
-    private func disconnectPreviewLayer() {
-        guard let previewLayer = previewLayer, previewLayer.session != nil else { return }
-        print("📷 PreviewViewController: Disconnecting preview layer from session")
-        previewLayer.session = nil
-    }
-
-    private func setupPreviewLayer() {
-        guard previewLayer == nil else { return }
-
-        let layer = AVCaptureVideoPreviewLayer()
-        layer.videoGravity = .resizeAspectFill
-        view.backgroundColor = .black
-        view.layer.addSublayer(layer)
-        previewLayer = layer
-
-        updatePreviewLayer()
-    }
-
-    func updatePreviewLayer() {
-        guard let previewLayer = previewLayer else {
-            print("⚠️ PreviewViewController: No preview layer")
-            return
-        }
-
-        if let captureSession = scanner?.captureSession {
-            if previewLayer.session == nil {
-                print("📷 PreviewViewController: Setting session (was nil)")
-                if captureSession.inputs.count > 0 && captureSession.outputs.count > 0 {
-                    previewLayer.session = captureSession
-                    print("✅ PreviewViewController: Session connected successfully")
-                } else {
-                    print("⚠️ PreviewViewController: Session not ready yet (inputs: \(captureSession.inputs.count), outputs: \(captureSession.outputs.count))")
-                }
-            } else if previewLayer.session !== captureSession {
-                print("📷 PreviewViewController: Replacing session")
-                previewLayer.session = captureSession
-            } else {
-                print("✅ PreviewViewController: Session already set correctly")
+    func updateUIView(_ uiView: PreviewView, context: Context) {
+        if let session = scanner.captureSession {
+            if uiView.previewLayer.session !== session {
+                uiView.setSession(session)
+                print("✅ QRScannerPreview: Session updated in updateUIView")
             }
-        } else {
-            print("⚠️ PreviewViewController: No capture session available")
         }
-
-        let bounds = view.bounds
-        if previewLayer.frame != bounds && !bounds.isEmpty {
-            print("📷 PreviewViewController: Updating frame to \(bounds)")
-            previewLayer.frame = bounds
+        
+        if uiView.previewLayer.frame != uiView.bounds && !uiView.bounds.isEmpty {
+            uiView.previewLayer.frame = uiView.bounds
         }
     }
 }
