@@ -19,14 +19,6 @@ struct AppleSignInButton: View {
             .frame(height: 50)
             .frame(maxWidth: .infinity, alignment: .center)
             .cornerRadius(8)
-            .onTapGesture {
-                print("🔵🔵🔵 Apple Sign In button TAP GESTURE detected")
-            }
-            .simultaneousGesture(
-                TapGesture().onEnded {
-                    print("🔵🔵🔵 Apple Sign In button SIMULTANEOUS gesture detected")
-                }
-            )
 
             if let errorMessage = errorMessage {
                 Text(errorMessage)

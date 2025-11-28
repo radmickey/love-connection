@@ -20,7 +20,6 @@ struct LoginView: View {
                     .fontWeight(.bold)
 
                 VStack(spacing: 16) {
-                    print("🔵 LoginView body rendered")
                     if featureFlags.enableEmailPasswordAuth {
                         TextField("Email", text: $email)
                             .textFieldStyle(.roundedBorder)
@@ -55,18 +54,18 @@ struct LoginView: View {
                     }
 
                     if featureFlags.enableAppleSignIn {
-                        print("🔵 Rendering AppleSignInButton")
                         AppleSignInButton()
                             .allowsHitTesting(true)
                             .contentShape(Rectangle())
+                            .onAppear {
+                                print("🔵 AppleSignInButton appeared on screen")
+                            }
 
                         #if targetEnvironment(simulator)
                         Text("Note: Apple Sign In requires a real device")
                             .font(.caption2)
                             .foregroundColor(.secondary)
                         #endif
-                    } else {
-                        print("⚠️ Apple Sign In disabled by feature flag")
                     }
 
                     if featureFlags.enableEmailPasswordAuth {
