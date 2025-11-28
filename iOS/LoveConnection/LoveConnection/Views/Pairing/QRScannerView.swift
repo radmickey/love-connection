@@ -48,7 +48,9 @@ struct QRScannerView: View {
                 scanner.startScanning()
             }
             .onDisappear {
-                scanner.stopScanning()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    scanner.stopScanning()
+                }
             }
             .onChange(of: scanner.scannedCode) { code in
                 if let code = code {
@@ -215,17 +217,12 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
 
     func stopScanning() {
         print("📷 QRScanner: stopScanning() called")
-
-        let semaphore = DispatchSemaphore(value: 0)
-
-        DispatchQueue.main.sync {
-            print("📷 QRScanner: Disconnecting preview layer on main thread")
+        
+        DispatchQueue.main.async { [weak self] in
+            print("📷 QRScanner: Posting CaptureSessionStopping notification")
             NotificationCenter.default.post(name: NSNotification.Name("CaptureSessionStopping"), object: nil)
-            semaphore.signal()
         }
-
-        semaphore.wait()
-
+        
         sessionQueue.async { [weak self] in
             guard let self = self else {
                 print("❌ QRScanner: Self is nil in stopScanning")
