@@ -74,7 +74,7 @@ struct QRScannerView: View {
 class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDelegate {
     @Published var scannedCode: String?
 
-    private var captureSession: AVCaptureSession?
+    var captureSession: AVCaptureSession?
     private let sessionQueue = DispatchQueue(label: "com.loveconnection.captureSession")
     private var isSessionRunning = false
 
