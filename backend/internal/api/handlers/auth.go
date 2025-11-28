@@ -141,8 +141,12 @@ func (h *AuthHandler) AppleSignIn(c *gin.Context) {
 		if req.Username != nil && *req.Username != "" {
 			username = *req.Username
 		}
+		
+		if username == "" {
+			username = "User"
+		}
 
-		log.Printf("🔵 Apple Sign In: Creating user with apple_id=%s, username=%s", req.UserIdentifier, username)
+		log.Printf("🔵 Apple Sign In: Creating user with apple_id=%s (length=%d), username=%s", req.UserIdentifier, len(req.UserIdentifier), username)
 
 		err = h.db.QueryRow(
 			"INSERT INTO users (apple_id, username) VALUES ($1, $2) RETURNING id",
@@ -152,6 +156,7 @@ func (h *AuthHandler) AppleSignIn(c *gin.Context) {
 		if err != nil {
 			log.Printf("❌ Apple Sign In: Failed to create user: %v", err)
 			log.Printf("❌ Apple Sign In: UserIdentifier length: %d, Username: %s", len(req.UserIdentifier), username)
+			log.Printf("❌ Apple Sign In: Full error details: %+v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user: " + err.Error()})
 			return
 		}
