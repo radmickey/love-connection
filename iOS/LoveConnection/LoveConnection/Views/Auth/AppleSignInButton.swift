@@ -49,14 +49,14 @@ struct AppleSignInButton: View {
         case .failure(let error):
             let nsError = error as NSError
             #if targetEnvironment(simulator)
-            if nsError.domain == "com.apple.AuthenticationServices.AuthorizationError" || 
+            if nsError.domain == "com.apple.AuthenticationServices.AuthorizationError" ||
                nsError.domain == "AKAuthenticationError" {
                 print("Note: Apple Sign In is not fully supported in iOS Simulator. Use a real device for testing.")
                 errorMessage = nil
                 return
             }
             #endif
-            
+
             if nsError.domain == "com.apple.AuthenticationServices.AuthorizationError" {
                 switch nsError.code {
                 case 1000:

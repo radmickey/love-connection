@@ -17,17 +17,28 @@ struct SignUpView: View {
                     TextField("Username", text: $username)
                         .textFieldStyle(.roundedBorder)
                         .autocapitalization(.none)
+                        .autocorrectionDisabled()
+                        .submitLabel(.next)
                     
                     TextField("Email", text: $email)
                         .textFieldStyle(.roundedBorder)
                         .autocapitalization(.none)
                         .keyboardType(.emailAddress)
+                        .autocorrectionDisabled()
+                        .submitLabel(.next)
                     
                     SecureField("Password", text: $password)
                         .textFieldStyle(.roundedBorder)
+                        .submitLabel(.next)
                     
                     SecureField("Confirm Password", text: $confirmPassword)
                         .textFieldStyle(.roundedBorder)
+                        .submitLabel(.done)
+                        .onSubmit {
+                            if isFormValid {
+                                signUp()
+                            }
+                        }
                     
                     if let errorMessage = errorMessage {
                         Text(errorMessage)
@@ -60,7 +71,14 @@ struct SignUpView: View {
                     }
                 }
             }
+            .onTapGesture {
+                hideKeyboard()
+            }
         }
+    }
+    
+    private func hideKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
     
     private var isFormValid: Bool {
