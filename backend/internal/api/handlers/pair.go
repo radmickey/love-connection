@@ -28,9 +28,31 @@ func (h *PairHandler) CreatePairRequest(c *gin.Context) {
 		return
 	}
 
-	partnerID, err := uuid.Parse(req.QRCode)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid QR code"})
+	var partnerID uuid.UUID
+	var err error
+
+	// Поддержка как username, так и QR code (UUID)
+	if req.Username != "" {
+		err = h.db.QueryRow(
+			"SELECT id FROM users WHERE username = $1",
+			req.Username,
+		).Scan(&partnerID)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			} else {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find user"})
+			}
+			return
+		}
+	} else if req.QRCode != "" {
+		partnerID, err = uuid.Parse(req.QRCode)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid QR code"})
+			return
+		}
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Either username or qr_code must be provided"})
 		return
 	}
 

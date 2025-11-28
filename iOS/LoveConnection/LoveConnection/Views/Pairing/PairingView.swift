@@ -2,8 +2,8 @@ import SwiftUI
 
 struct PairingView: View {
     @EnvironmentObject var appState: AppState
-    @State private var showingQRScanner = false
-    @State private var showingQRCode = false
+    @State private var showingUsernameSearch = false
+    @State private var showingInviteLink = false
 
     var body: some View {
         NavigationStack {
@@ -18,20 +18,20 @@ struct PairingView: View {
                     .font(.title2)
                     .fontWeight(.semibold)
 
-                Text("Scan your partner's QR code or share yours to create a connection")
+                Text("Search for your partner by username or share your invite link")
                     .multilineTextAlignment(.center)
                     .foregroundColor(.secondary)
                     .padding(.horizontal)
 
                 VStack(spacing: 16) {
-                    Button(action: { showingQRScanner = true }) {
-                        Label("Scan QR Code", systemImage: "qrcode.viewfinder")
+                    Button(action: { showingUsernameSearch = true }) {
+                        Label("Search by Username", systemImage: "person.circle.fill")
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)
 
-                    Button(action: { showingQRCode = true }) {
-                        Label("Show My QR Code", systemImage: "qrcode")
+                    Button(action: { showingInviteLink = true }) {
+                        Label("Share Invite Link", systemImage: "link")
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.bordered)
@@ -47,11 +47,11 @@ struct PairingView: View {
                 Spacer()
             }
             .navigationTitle("Pairing")
-            .sheet(isPresented: $showingQRScanner) {
-                QRScannerView()
+            .sheet(isPresented: $showingUsernameSearch) {
+                UsernameSearchView()
             }
-            .sheet(isPresented: $showingQRCode) {
-                QRCodeDisplayView()
+            .sheet(isPresented: $showingInviteLink) {
+                InviteLinkView()
             }
         }
     }

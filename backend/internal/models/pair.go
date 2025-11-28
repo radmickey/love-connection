@@ -16,7 +16,8 @@ type Pair struct {
 }
 
 type CreatePairRequest struct {
-	QRCode string `json:"qr_code" binding:"required"`
+	QRCode  string `json:"qr_code,omitempty"`
+	Username string `json:"username,omitempty"`
 }
 
 type PairRequest struct {

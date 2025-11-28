@@ -30,11 +30,14 @@ func (h *LoveHandler) SendLove(c *gin.Context) {
 		return
 	}
 
+	// БЕЗОПАСНОСТЬ: Находим пару для отправителя и проверяем, что он действительно в этой паре
+	// Это гарантирует, что пользователь может отправлять сердечки только своему партнеру
 	var pairID uuid.UUID
+	var user1ID, user2ID uuid.UUID
 	err := h.db.QueryRow(
-		"SELECT id FROM pairs WHERE user1_id = $1 OR user2_id = $1",
+		"SELECT id, user1_id, user2_id FROM pairs WHERE user1_id = $1 OR user2_id = $1",
 		senderID,
-	).Scan(&pairID)
+	).Scan(&pairID, &user1ID, &user2ID)
 
 	if err == sql.ErrNoRows {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "No pair found"})
@@ -46,6 +49,15 @@ func (h *LoveHandler) SendLove(c *gin.Context) {
 		return
 	}
 
+	// ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА: Убеждаемся, что senderID действительно является участником этой пары
+	// Это защита от потенциальных гонок условий или ошибок в логике
+	if senderID != user1ID && senderID != user2ID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "You are not a member of this pair"})
+		return
+	}
+
+	// БЕЗОПАСНОСТЬ: Вставляем событие только с pairID, который мы получили из проверки выше
+	// senderID берется из токена (проверен middleware), поэтому он не может быть подделан
 	var eventID uuid.UUID
 	err = h.db.QueryRow(
 		"INSERT INTO love_events (pair_id, sender_id, duration_seconds) VALUES ($1, $2, $3) RETURNING id",
@@ -86,16 +98,26 @@ func (h *LoveHandler) SendLove(c *gin.Context) {
 
 	event.Sender = &sender
 
+	// БЕЗОПАСНОСТЬ: Определяем партнера из уже проверенной пары
+	// Используем уже полученные user1ID и user2ID для определения партнера
+	// Это безопасно, потому что мы уже проверили, что senderID является участником пары
 	var partnerID uuid.UUID
-	err = h.db.QueryRow(
-		"SELECT CASE WHEN user1_id = $1 THEN user2_id ELSE user1_id END FROM pairs WHERE id = $2",
-		senderID, pairID,
-	).Scan(&partnerID)
-
-	if err == nil {
-		go services.SendNotification(h.db, partnerID, sender.Username, req.DurationSeconds)
-		h.hub.BroadcastLoveEvent(event, partnerID)
+	if senderID == user1ID {
+		partnerID = user2ID
+	} else {
+		partnerID = user1ID
 	}
+
+	// БЕЗОПАСНОСТЬ: Дополнительная проверка - партнер должен быть другим пользователем
+	// Это защита от некорректных данных в базе (хотя есть CHECK constraint в схеме)
+	if partnerID == senderID {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid pair configuration"})
+		return
+	}
+
+	// Отправляем уведомление и broadcast только своему партнеру
+	go services.SendNotification(h.db, partnerID, sender.Username, req.DurationSeconds)
+	h.hub.BroadcastLoveEvent(event, partnerID)
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,

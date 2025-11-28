@@ -85,8 +85,14 @@ struct AppleSignInButton: View {
                     print("✅ Sign in successful, user: \(response.user.username)")
                     appState.currentUser = response.user
                     appState.isAuthenticated = true
-                    await appState.loadCurrentPair()
-                    NotificationService.shared.sendDeviceTokenIfAuthenticated()
+
+                    // Проверяем, нужно ли установить username
+                    if response.needsUsername == true {
+                        appState.needsUsernameSetup = true
+                    } else {
+                        await appState.loadCurrentPair()
+                        NotificationService.shared.sendDeviceTokenIfAuthenticated()
+                    }
                 } catch {
                     print("❌ Sign in error: \(error)")
                     errorMessage = error.localizedDescription

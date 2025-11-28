@@ -35,6 +35,8 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, hub *websocket.Hub) {
 			api.GET("/user/me", userHandler.GetMe)
 			api.PATCH("/user/me", userHandler.UpdateMe)
 			api.POST("/user/device-token", userHandler.UpdateDeviceToken)
+			api.GET("/user/search", userHandler.SearchUser)
+			api.GET("/user/invite-link", userHandler.GenerateInviteLink)
 
 			pairHandler := handlers.NewPairHandler(db)
 			api.POST("/pairs/request", pairHandler.CreatePairRequest)

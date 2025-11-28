@@ -92,17 +92,148 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
     private let sessionQueue = DispatchQueue(label: "com.loveconnection.captureSession")
     private var sessionState: SessionState = .idle
     weak var previewCoordinator: QRScannerPreview.Coordinator?
+    private var runtimeErrorObserver: NSObjectProtocol?
+    private var sessionInterruptionObserver: NSObjectProtocol?
+    private var interruptionEndedObserver: NSObjectProtocol?
 
     private var isSessionRunning: Bool {
         return sessionState == .running
     }
 
+    override init() {
+        super.init()
+        setupSessionObservers()
+    }
+
+    deinit {
+        removeSessionObservers()
+    }
+
+    private func setupSessionObservers() {
+        // Обработка ошибок выполнения сессии
+        runtimeErrorObserver = NotificationCenter.default.addObserver(
+            forName: .AVCaptureSessionRuntimeError,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            guard let self = self else { return }
+            self.handleSessionRuntimeError(notification)
+        }
+
+        // Обработка прерываний сессии
+        sessionInterruptionObserver = NotificationCenter.default.addObserver(
+            forName: .AVCaptureSessionWasInterrupted,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            guard let self = self else { return }
+            self.handleSessionInterruption(notification)
+        }
+
+        // Обработка возобновления сессии после прерывания
+        interruptionEndedObserver = NotificationCenter.default.addObserver(
+            forName: .AVCaptureSessionInterruptionEnded,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            guard let self = self else { return }
+            print("✅ QRScanner: Session interruption ended")
+            // Если сессия была запущена до прерывания, перезапускаем её
+            if self.sessionState == .ready {
+                self.startScanning()
+            }
+        }
+    }
+
+    private func removeSessionObservers() {
+        if let observer = runtimeErrorObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
+        if let observer = sessionInterruptionObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
+        if let observer = interruptionEndedObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
+    }
+
+    private func handleSessionRuntimeError(_ notification: Notification) {
+        guard let session = captureSession else { return }
+
+        if let error = notification.userInfo?[AVCaptureSessionErrorKey] as? AVError {
+            print("❌ QRScanner: Session runtime error: \(error.localizedDescription), code: \(error.code.rawValue)")
+
+            // Если ошибка -12710 (AVErrorMediaServicesWereReset), восстанавливаем сессию
+            if error.code == .mediaServicesWereReset {
+                print("🔄 QRScanner: Media services were reset, attempting to recover...")
+                sessionQueue.async { [weak self] in
+                    guard let self = self else { return }
+                    if session.isRunning {
+                        session.stopRunning()
+                    }
+                    self.recoverSession()
+                }
+            } else {
+                // Для других ошибок также пытаемся восстановить
+                print("🔄 QRScanner: Attempting to recover from error...")
+                sessionQueue.async { [weak self] in
+                    guard let self = self else { return }
+                    if session.isRunning {
+                        session.stopRunning()
+                    }
+                    self.recoverSession()
+                }
+            }
+        }
+    }
+
+    private func handleSessionInterruption(_ notification: Notification) {
+        guard let session = captureSession else { return }
+
+        if let reason = notification.userInfo?[AVCaptureSessionInterruptionReasonKey] as? AVCaptureSession.InterruptionReason {
+            print("⚠️ QRScanner: Session interrupted, reason: \(reason.rawValue)")
+
+            if reason == .audioDeviceInUseByAnotherClient || reason == .videoDeviceInUseByAnotherClient {
+                // Устройство используется другим приложением
+                print("📷 QRScanner: Device in use by another client")
+            }
+        }
+    }
+
+    private func recoverSession() {
+        print("🔄 QRScanner: Recovering session...")
+
+        guard let session = captureSession else {
+            print("❌ QRScanner: No session to recover")
+            sessionState = .idle
+            return
+        }
+
+        // Сбрасываем состояние
+        sessionState = .idle
+
+        // Очищаем текущую сессию
+        DispatchQueue.main.async { [weak self] in
+            self?.previewCoordinator?.disconnectPreviewLayer()
+        }
+
+        // Пересоздаем сессию
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            guard let self = self else { return }
+            self.captureSession = nil
+            self.startScanning()
+        }
+    }
+
     func startScanning() {
         print("📷 QRScanner: startScanning() called, current state: \(sessionState)")
 
+        // Не запускаем, если сессия уже запущена или в процессе настройки
         guard sessionState == .idle || sessionState == .ready else {
             if sessionState == .running {
                 print("📷 QRScanner: Session already running")
+            } else if sessionState == .configuring {
+                print("⚠️ QRScanner: Session is being configured, please wait")
             } else {
                 print("⚠️ QRScanner: Session is in state \(sessionState), cannot start")
             }
@@ -121,6 +252,7 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
                         print("⚠️ QRScanner: State changed to \(self.sessionState), aborting start")
                         return
                     }
+
                     print("📷 QRScanner: Starting session on background queue")
                     if !session.isRunning {
                         self.sessionState = .running
@@ -161,6 +293,13 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
 
     private func setupCaptureSession() {
         print("📷 QRScanner: setupCaptureSession() started")
+
+        // Проверяем, что мы не в процессе конфигурации
+        guard sessionState != .configuring else {
+            print("⚠️ QRScanner: Already configuring, skipping")
+            return
+        }
+
         sessionState = .configuring
 
         guard let videoCaptureDevice = AVCaptureDevice.default(for: .video) else {
@@ -179,6 +318,15 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
             print("❌ QRScanner: Failed to create video input: \(error)")
             sessionState = .idle
             return
+        }
+
+        // Очищаем предыдущую сессию, если она существует
+        if let oldSession = captureSession {
+            print("📷 QRScanner: Cleaning up old session")
+            if oldSession.isRunning {
+                oldSession.stopRunning()
+            }
+            captureSession = nil
         }
 
         let captureSession = AVCaptureSession()
@@ -220,41 +368,68 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
         captureSession.commitConfiguration()
         print("✅ QRScanner: Configuration committed")
 
+        // КРИТИЧЕСКИ ВАЖНО: commitConfiguration() должен полностью завершиться
+        // перед любыми другими операциями с сессией. commitConfiguration() является синхронным,
+        // поэтому после этой строки конфигурация гарантированно завершена.
+
+        // Настраиваем metadata output ДО сохранения сессии
         metadataOutput.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
         metadataOutput.metadataObjectTypes = [.qr]
         print("✅ QRScanner: Metadata output configured for QR codes")
 
+        // Сохраняем сессию и меняем состояние
         self.captureSession = captureSession
         self.sessionState = .ready
         print("✅ QRScanner: Capture session stored, state: \(sessionState)")
 
+        // Уведомляем о готовности сессии на главном потоке
         DispatchQueue.main.async { [weak self] in
             print("📷 QRScanner: Posting CaptureSessionReady notification")
             NotificationCenter.default.post(name: NSNotification.Name("CaptureSessionReady"), object: nil)
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
-            guard let self = self, let session = self.captureSession else {
-                print("❌ QRScanner: Session is nil when trying to start")
-                return
-            }
-            guard self.sessionState == .ready else {
-                print("⚠️ QRScanner: State is \(self.sessionState), not starting")
-                return
-            }
-            print("📷 QRScanner: Starting session on background thread...")
-            self.sessionQueue.async {
-                guard self.sessionState == .ready else {
-                    print("⚠️ QRScanner: State changed to \(self.sessionState) before start")
+        // ВАЖНО: Запускаем сессию на том же потоке (sessionQueue), где была выполнена конфигурация
+        // Поскольку setupCaptureSession() вызывается из sessionQueue.async в startScanning(),
+        // мы уже находимся на sessionQueue. commitConfiguration() синхронный и уже завершен,
+        // поэтому мы можем безопасно вызвать startRunning() сразу, без дополнительных async вызовов.
+        // Но для безопасности используем async, чтобы гарантировать, что все предыдущие операции завершены.
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.sessionQueue.async { [weak self] in
+                guard let self = self, let session = self.captureSession else {
+                    print("❌ QRScanner: Session is nil when trying to start")
                     return
                 }
-                if !session.isRunning {
+                guard self.sessionState == .ready else {
+                    print("⚠️ QRScanner: State is \(self.sessionState), not starting")
+                    return
+                }
+
+                // Дополнительная проверка: убеждаемся, что сессия не запущена
+                if session.isRunning {
+                    print("⚠️ QRScanner: Session already running, skipping start")
                     self.sessionState = .running
-                    session.startRunning()
-                    print("✅ QRScanner: Session started successfully, isRunning: \(session.isRunning)")
-                } else {
-                    print("⚠️ QRScanner: Session already running")
-                    self.sessionState = .running
+                    return
+                }
+
+                print("📷 QRScanner: Starting session on background thread...")
+
+                // ВАЖНО: startRunning() должен вызываться ТОЛЬКО после полного завершения commitConfiguration()
+                // и на том же потоке, где выполнялась конфигурация (sessionQueue)
+                // Поскольку commitConfiguration() синхронный и мы на sessionQueue, это безопасно
+                self.sessionState = .running
+                session.startRunning()
+
+                // Проверяем, что сессия действительно запустилась
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+                    guard let self = self else { return }
+                    if let session = self.captureSession, !session.isRunning && self.sessionState == .running {
+                        print("⚠️ QRScanner: Session failed to start, attempting recovery...")
+                        self.sessionState = .idle
+                        self.recoverSession()
+                    } else {
+                        print("✅ QRScanner: Session started successfully, isRunning: \(session.isRunning ?? false)")
+                    }
                 }
             }
         }
@@ -263,7 +438,7 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
     func stopScanning() {
         print("📷 QRScanner: stopScanning() called, current state: \(sessionState)")
 
-        guard sessionState == .running || sessionState == .ready else {
+        guard sessionState == .running || sessionState == .ready || sessionState == .configuring else {
             print("⚠️ QRScanner: Session is in state \(sessionState), nothing to stop")
             if sessionState != .stopping {
                 sessionState = .idle
@@ -278,18 +453,20 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
         }
 
         sessionState = .stopping
-        
+
+        // КРИТИЧЕСКИ ВАЖНО: Сначала отключаем preview layer СИНХРОННО на главном потоке
+        // Это гарантирует, что preview layer отключен ДО остановки сессии
+        // Использование sync предотвращает гонку условий и ошибку -17281
         let semaphore = DispatchSemaphore(value: 0)
-        
-        DispatchQueue.main.sync {
-            print("📷 QRScanner: Disconnecting preview layer synchronously on main thread")
-            previewCoordinator?.disconnectPreviewLayer()
+        DispatchQueue.main.async { [weak self] in
+            print("📷 QRScanner: Disconnecting preview layer on main thread")
+            self?.previewCoordinator?.disconnectPreviewLayer()
             semaphore.signal()
         }
-        
         semaphore.wait()
-        print("✅ QRScanner: Preview layer disconnected, stopping session")
+        print("✅ QRScanner: Preview layer disconnected, proceeding to stop session")
 
+        // Останавливаем сессию на фоновом потоке ПОСЛЕ отключения preview layer
         sessionQueue.async { [weak self] in
             guard let self = self else { return }
             guard self.sessionState == .stopping else {
@@ -301,8 +478,25 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
 
             if captureSession.isRunning {
                 print("📷 QRScanner: Stopping session on background thread...")
+
+                // ВАЖНО: Убеждаемся, что preview layer отключен перед остановкой
+                // Это предотвращает ошибку -17281 (AVErrorSessionNotRunning)
+                // Preview layer уже отключен синхронно выше, поэтому это безопасно
+
                 captureSession.stopRunning()
-                print("✅ QRScanner: Session stopRunning() called")
+
+                // Ждем, пока сессия полностью остановится
+                var attempts = 0
+                while captureSession.isRunning && attempts < 10 {
+                    Thread.sleep(forTimeInterval: 0.1)
+                    attempts += 1
+                }
+
+                if captureSession.isRunning {
+                    print("⚠️ QRScanner: Session still running after stop attempt")
+                } else {
+                    print("✅ QRScanner: Session stopped successfully")
+                }
             } else {
                 print("⚠️ QRScanner: Session was not running")
             }
@@ -427,9 +621,14 @@ struct QRScannerPreview: UIViewRepresentable {
                 print("⚠️ QRScannerPreview Coordinator: No preview view to disconnect")
                 return
             }
+            // ВАЖНО: Отключаем сессию от preview layer на главном потоке
+            // Это должно быть выполнено ДО остановки сессии, чтобы избежать ошибки -17281
             if previewView.previewLayer.session != nil {
                 print("📷 QRScannerPreview Coordinator: Disconnecting preview layer")
+                // Устанавливаем session в nil, чтобы отключить preview layer от сессии
                 previewView.setSession(nil)
+            } else {
+                print("📷 QRScannerPreview Coordinator: Preview layer already disconnected")
             }
         }
 

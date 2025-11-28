@@ -139,13 +139,40 @@ class APIService {
         let _: APIResponse<EmptyResponse> = try await request(APIResponse<EmptyResponse>.self, endpoint: Constants.API.pairsCurrent, method: "DELETE")
     }
 
-    func createPairRequest(qrCode: String) async throws -> PairRequest {
-        let body = try JSONEncoder().encode(["qr_code": qrCode])
+    func createPairRequest(qrCode: String? = nil, username: String? = nil) async throws -> PairRequest {
+        var bodyDict: [String: String] = [:]
+        if let qrCode = qrCode {
+            bodyDict["qr_code"] = qrCode
+        }
+        if let username = username {
+            bodyDict["username"] = username
+        }
+        let body = try JSONEncoder().encode(bodyDict)
         let response: APIResponse<PairRequest> = try await request(APIResponse<PairRequest>.self, endpoint: "/api/pairs/request", method: "POST", body: body)
         guard let request = response.data else {
             throw APIError.invalidResponse
         }
         return request
+    }
+
+    func searchUser(username: String) async throws -> User {
+        let response: APIResponse<User> = try await request(APIResponse<User>.self, endpoint: "/api/user/search?username=\(username.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? username)")
+        guard let user = response.data else {
+            throw APIError.invalidResponse
+        }
+        return user
+    }
+
+    func generateInviteLink() async throws -> (link: String, username: String) {
+        struct InviteLinkResponse: Codable {
+            let link: String
+            let username: String
+        }
+        let response: APIResponse<InviteLinkResponse> = try await request(APIResponse<InviteLinkResponse>.self, endpoint: "/api/user/invite-link")
+        guard let data = response.data else {
+            throw APIError.invalidResponse
+        }
+        return (data.link, data.username)
     }
 
     func respondPairRequest(requestId: UUID, accept: Bool) async throws -> Pair? {

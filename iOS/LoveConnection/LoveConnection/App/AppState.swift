@@ -9,6 +9,8 @@ class AppState: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var isCheckingAuth: Bool = true
     @Published var errorMessage: String?
+    @Published var needsUsernameSetup: Bool = false
+    @Published var pendingUsernameToAdd: String?
 
     private let authService = AuthService.shared
     private let apiService = APIService.shared

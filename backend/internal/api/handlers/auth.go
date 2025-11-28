@@ -203,9 +203,16 @@ func (h *AuthHandler) AppleSignIn(c *gin.Context) {
 		User:  user,
 	}
 
+	// Проверяем, нужно ли установить username
+	needsUsername := false
+	if user.Username == "" || user.Username == "User" {
+		needsUsername = true
+	}
+
 	log.Printf("✅ Apple Sign In: Success for user ID=%s", user.ID)
 	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"data":    authResponse,
+		"success":       true,
+		"data":          authResponse,
+		"needs_username": needsUsername,
 	})
 }
