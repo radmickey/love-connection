@@ -6,6 +6,7 @@ struct LoginView: View {
     @State private var password = ""
     @State private var showingSignUp = false
     @State private var errorMessage: String?
+    @State private var showError = false
     @State private var isLoading = false
 
     var body: some View {
@@ -36,12 +37,6 @@ struct LoginView: View {
                                 login()
                             }
                         }
-
-                    if let errorMessage = errorMessage {
-                        Text(errorMessage)
-                            .foregroundColor(.red)
-                            .font(.caption)
-                    }
 
                     Button(action: login) {
                         if isLoading {
@@ -78,6 +73,13 @@ struct LoginView: View {
             .onTapGesture {
                 hideKeyboard()
             }
+            .alert("Error", isPresented: $showError) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                if let errorMessage = errorMessage {
+                    Text(errorMessage)
+                }
+            }
         }
     }
 
@@ -86,8 +88,27 @@ struct LoginView: View {
     }
 
     private func login() {
+        if email.isEmpty {
+            errorMessage = "Email is required"
+            showError = true
+            return
+        }
+        
+        if !EmailValidator.isValid(email) {
+            errorMessage = "Please enter a valid email address"
+            showError = true
+            return
+        }
+        
+        if password.isEmpty {
+            errorMessage = "Password is required"
+            showError = true
+            return
+        }
+        
         isLoading = true
         errorMessage = nil
+        showError = false
 
         Task {
             do {
@@ -96,7 +117,8 @@ struct LoginView: View {
                 appState.isAuthenticated = true
                 await appState.loadCurrentPair()
             } catch {
-                errorMessage = error.localizedDescription
+                errorMessage = ErrorFormatter.userFriendlyMessage(from: error)
+                showError = true
             }
             isLoading = false
         }

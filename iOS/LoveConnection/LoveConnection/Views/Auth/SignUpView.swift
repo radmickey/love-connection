@@ -8,6 +8,7 @@ struct SignUpView: View {
     @State private var confirmPassword = ""
     @State private var username = ""
     @State private var errorMessage: String?
+    @State private var showError = false
     @State private var isLoading = false
 
     var body: some View {
@@ -40,12 +41,6 @@ struct SignUpView: View {
                             }
                         }
 
-                    if let errorMessage = errorMessage {
-                        Text(errorMessage)
-                            .foregroundColor(.red)
-                            .font(.caption)
-                    }
-
                     Button(action: signUp) {
                         if isLoading {
                             ProgressView()
@@ -74,6 +69,13 @@ struct SignUpView: View {
             .onTapGesture {
                 hideKeyboard()
             }
+            .alert("Error", isPresented: $showError) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                if let errorMessage = errorMessage {
+                    Text(errorMessage)
+                }
+            }
         }
     }
 
@@ -88,15 +90,49 @@ struct SignUpView: View {
         password == confirmPassword &&
         password.count >= 6
     }
+    
+    private func validateForm() -> String? {
+        if username.isEmpty {
+            return "Username is required"
+        }
+        
+        if username.count < 3 {
+            return "Username must be at least 3 characters"
+        }
+        
+        if email.isEmpty {
+            return "Email is required"
+        }
+        
+        if !EmailValidator.isValid(email) {
+            return "Please enter a valid email address"
+        }
+        
+        if password.isEmpty {
+            return "Password is required"
+        }
+        
+        if password.count < 6 {
+            return "Password must be at least 6 characters long"
+        }
+        
+        if password != confirmPassword {
+            return "Passwords do not match"
+        }
+        
+        return nil
+    }
 
     private func signUp() {
-        guard password == confirmPassword else {
-            errorMessage = "Passwords do not match"
+        if let validationError = validateForm() {
+            errorMessage = validationError
+            showError = true
             return
         }
 
         isLoading = true
         errorMessage = nil
+        showError = false
 
         Task {
             do {
@@ -106,7 +142,8 @@ struct SignUpView: View {
                 await appState.loadCurrentPair()
                 dismiss()
             } catch {
-                errorMessage = error.localizedDescription
+                errorMessage = ErrorFormatter.userFriendlyMessage(from: error)
+                showError = true
             }
             isLoading = false
         }
