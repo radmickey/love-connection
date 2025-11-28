@@ -118,6 +118,8 @@ func (h *AuthHandler) Login(c *gin.Context) {
 }
 
 func (h *AuthHandler) AppleSignIn(c *gin.Context) {
+	log.Printf("🔵 Apple Sign In: Handler called")
+	
 	var req models.AppleSignInRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Printf("❌ Apple Sign In: Invalid request: %v", err)
@@ -125,7 +127,7 @@ func (h *AuthHandler) AppleSignIn(c *gin.Context) {
 		return
 	}
 
-	log.Printf("🔵 Apple Sign In: UserIdentifier=%s, Username=%v", req.UserIdentifier, req.Username)
+	log.Printf("🔵 Apple Sign In: UserIdentifier=%s (length=%d), Username=%v", req.UserIdentifier, len(req.UserIdentifier), req.Username)
 
 	var user models.User
 	var userID uuid.UUID
@@ -173,12 +175,16 @@ func (h *AuthHandler) AppleSignIn(c *gin.Context) {
 			return
 		}
 	} else if err != nil {
+		log.Printf("❌ Apple Sign In: Database query error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error: " + err.Error()})
 		return
+	} else {
+		log.Printf("✅ Apple Sign In: User found with ID=%s", user.ID)
 	}
 
 	token, err := services.GenerateToken(user.ID)
 	if err != nil {
+		log.Printf("❌ Apple Sign In: Failed to generate token: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
 	}
@@ -188,6 +194,7 @@ func (h *AuthHandler) AppleSignIn(c *gin.Context) {
 		User:  user,
 	}
 
+	log.Printf("✅ Apple Sign In: Success for user ID=%s", user.ID)
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"data":    authResponse,
