@@ -1,9 +1,9 @@
 DO $$
 BEGIN
     IF EXISTS (
-        SELECT 1 FROM information_schema.columns 
-        WHERE table_name = 'love_events' 
-        AND column_name = 'pair_id' 
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'love_events'
+        AND column_name = 'pair_id'
         AND is_nullable = 'NO'
     ) THEN
         ALTER TABLE love_events ALTER COLUMN pair_id DROP NOT NULL;
