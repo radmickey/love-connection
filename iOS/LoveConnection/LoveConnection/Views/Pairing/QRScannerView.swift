@@ -99,6 +99,7 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
 
     func setPreviewLayerDisconnectCallback(_ callback: @escaping () -> Void) {
         previewLayerDisconnectCallback = callback
+        print("✅ QRScanner: Preview layer disconnect callback set")
     }
 
     func startScanning() {
@@ -370,6 +371,7 @@ struct QRScannerPreview: UIViewRepresentable {
     func makeCoordinator() -> Coordinator {
         let coordinator = Coordinator(scanner: scanner)
         scanner.setPreviewLayerDisconnectCallback { [weak coordinator] in
+            print("📷 QRScannerPreview: Callback invoked, disconnecting preview layer")
             coordinator?.disconnectPreviewLayer()
         }
         return coordinator
