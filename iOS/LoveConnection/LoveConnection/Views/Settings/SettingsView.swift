@@ -26,9 +26,9 @@ struct SettingsView: View {
                 }
 
                 Section("Account") {
-                    Button {
+                    Button(action: {
                         showingProfile = true
-                    } {
+                    }) {
                         HStack {
                             Label("Profile", systemImage: "person.circle")
                             Spacer()
