@@ -27,7 +27,7 @@ CREATE INDEX idx_pairs_user2 ON pairs(user2_id);
 
 CREATE TABLE love_events (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    pair_id UUID NOT NULL REFERENCES pairs(id) ON DELETE CASCADE,
+    pair_id UUID,
     sender_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     duration_seconds INTEGER NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()

@@ -77,12 +77,13 @@ class APIService {
 
     // MARK: - Pair
 
-    func getCurrentPair() async throws -> Pair {
+    func getCurrentPair() async throws -> Pair? {
         let response: APIResponse<Pair> = try await request(APIResponse<Pair>.self, endpoint: Constants.API.pairsCurrent)
-        guard let pair = response.data else {
-            throw APIError.invalidResponse
-        }
-        return pair
+        return response.data
+    }
+    
+    func deletePair() async throws {
+        let _: APIResponse<EmptyResponse> = try await request(APIResponse<EmptyResponse>.self, endpoint: Constants.API.pairsCurrent, method: "DELETE")
     }
 
     func createPairRequest(qrCode: String) async throws -> PairRequest {

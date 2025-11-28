@@ -37,9 +37,22 @@ class AppState: ObservableObject {
             self.currentPair = try await apiService.getCurrentPair()
             if self.currentPair != nil {
                 WebSocketService.shared.connect()
+            } else {
+                WebSocketService.shared.disconnect()
             }
         } catch {
             self.currentPair = nil
+            WebSocketService.shared.disconnect()
+        }
+    }
+    
+    func deletePair() async {
+        do {
+            try await apiService.deletePair()
+            self.currentPair = nil
+            WebSocketService.shared.disconnect()
+        } catch {
+            errorMessage = error.localizedDescription
         }
     }
 

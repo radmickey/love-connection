@@ -61,6 +61,21 @@ struct HeartButtonView: View {
                 }
             }
             .navigationTitle("Love Connection")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Menu {
+                        Button(role: .destructive, action: {
+                            Task {
+                                await appState.deletePair()
+                            }
+                        }) {
+                            Label("Break Pair", systemImage: "heart.slash")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                    }
+                }
+            }
         }
         .onAppear {
             if appState.isAuthenticated && appState.currentPair != nil {

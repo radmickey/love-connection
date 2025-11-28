@@ -36,6 +36,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, hub *websocket.Hub) {
 			api.POST("/pairs/respond", pairHandler.RespondPairRequest)
 			api.GET("/pairs/requests", pairHandler.GetPairRequests)
 			api.GET("/pairs/current", pairHandler.GetCurrentPair)
+			api.DELETE("/pairs/current", pairHandler.DeletePair)
 
 			loveHandler := handlers.NewLoveHandler(db, hub)
 			api.POST("/love/send", loveHandler.SendLove)

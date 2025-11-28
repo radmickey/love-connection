@@ -39,6 +39,28 @@ func (h *PairHandler) CreatePairRequest(c *gin.Context) {
 		return
 	}
 
+	var existingCurrentUserPair uuid.UUID
+	err = h.db.QueryRow(
+		`SELECT id FROM pairs WHERE user1_id = $1 OR user2_id = $1`,
+		currentUserID,
+	).Scan(&existingCurrentUserPair)
+
+	if err == nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "You are already in a pair"})
+		return
+	}
+
+	var existingPartnerPair uuid.UUID
+	err = h.db.QueryRow(
+		`SELECT id FROM pairs WHERE user1_id = $1 OR user2_id = $1`,
+		partnerID,
+	).Scan(&existingPartnerPair)
+
+	if err == nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "This user is already in a pair"})
+		return
+	}
+
 	var existingPairID uuid.UUID
 	err = h.db.QueryRow(
 		`SELECT id FROM pairs WHERE (user1_id = $1 AND user2_id = $2) OR (user1_id = $2 AND user2_id = $1)`,
@@ -179,6 +201,28 @@ func (h *PairHandler) RespondPairRequest(c *gin.Context) {
 	}
 
 	if req.Accept {
+		var existingRequesterPair uuid.UUID
+		err = h.db.QueryRow(
+			`SELECT id FROM pairs WHERE user1_id = $1 OR user2_id = $1`,
+			pairRequest.RequesterID,
+		).Scan(&existingRequesterPair)
+
+		if err == nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Requester is already in a pair"})
+			return
+		}
+
+		var existingRequestedPair uuid.UUID
+		err = h.db.QueryRow(
+			`SELECT id FROM pairs WHERE user1_id = $1 OR user2_id = $1`,
+			pairRequest.RequestedID,
+		).Scan(&existingRequestedPair)
+
+		if err == nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "You are already in a pair"})
+			return
+		}
+
 		var pairID uuid.UUID
 		err = h.db.QueryRow(
 			"INSERT INTO pairs (user1_id, user2_id) VALUES ($1, $2) RETURNING id",
@@ -311,5 +355,37 @@ func (h *PairHandler) GetCurrentPair(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"data":    pair,
+	})
+}
+
+func (h *PairHandler) DeletePair(c *gin.Context) {
+	userID, _ := c.Get("user_id")
+	currentUserID := userID.(uuid.UUID)
+
+	var pairID uuid.UUID
+	err := h.db.QueryRow(
+		`SELECT id FROM pairs WHERE user1_id = $1 OR user2_id = $1`,
+		currentUserID,
+	).Scan(&pairID)
+
+	if err == sql.ErrNoRows {
+		c.JSON(http.StatusNotFound, gin.H{"error": "No pair found"})
+		return
+	}
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find pair"})
+		return
+	}
+
+	_, err = h.db.Exec("DELETE FROM pairs WHERE id = $1", pairID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete pair"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Pair deleted successfully",
 	})
 }

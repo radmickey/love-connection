@@ -19,6 +19,7 @@ struct Constants {
         static let pairsRespond = "/api/pairs/respond"
         static let pairsRequests = "/api/pairs/requests"
         static let pairsCurrent = "/api/pairs/current"
+        static let pairsDelete = "/api/pairs/current"
         static let loveSend = "/api/love/send"
         static let loveHistory = "/api/love/history"
         static let stats = "/api/stats"
