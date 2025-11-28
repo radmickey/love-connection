@@ -27,32 +27,12 @@ else
     exit 1
 fi
 
-# Create nginx configuration
+# Create nginx configuration (HTTP only first, certbot will add HTTPS)
 echo "📝 Creating nginx configuration..."
 cat > /etc/nginx/sites-available/loveconnection <<EOF
 server {
     listen 80;
     server_name $DOMAIN;
-    return 301 https://\$server_name\$request_uri;
-}
-
-server {
-    listen 443 ssl http2;
-    server_name $DOMAIN;
-
-    ssl_certificate /etc/letsencrypt/live/$DOMAIN/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/$DOMAIN/privkey.pem;
-
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers HIGH:!aNULL:!MD5;
-    ssl_prefer_server_ciphers on;
-    ssl_session_cache shared:SSL:10m;
-    ssl_session_timeout 10m;
-
-    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header X-XSS-Protection "1; mode=block" always;
 
     location / {
         proxy_pass http://localhost:$BACKEND_PORT;
@@ -89,9 +69,18 @@ systemctl restart nginx
 echo "🔐 Obtaining SSL certificate from Let's Encrypt..."
 echo "Make sure DNS is configured: $DOMAIN → $(hostname -I | awk '{print $1}')"
 echo ""
-read -p "Press Enter to continue with certbot..."
+read -p "Press Enter to continue with certbot (or Ctrl+C to cancel)..."
 
+# Certbot will automatically:
+# 1. Obtain SSL certificate
+# 2. Update nginx configuration to add HTTPS
+# 3. Set up HTTP to HTTPS redirect
 certbot --nginx -d $DOMAIN --non-interactive --agree-tos --email admin@$DOMAIN --redirect
+
+# Verify nginx config after certbot changes
+echo "🧪 Verifying nginx configuration after certbot..."
+nginx -t
+systemctl reload nginx
 
 # Test certificate renewal
 echo "🧪 Testing certificate auto-renewal..."
