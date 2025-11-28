@@ -1,0 +1,58 @@
+//
+//  AppState.swift
+//  LoveConnection
+//
+//  Created on 2025-01-27.
+//
+
+import Foundation
+import Combine
+
+@MainActor
+class AppState: ObservableObject {
+    @Published var isAuthenticated: Bool = false
+    @Published var currentUser: User?
+    @Published var currentPair: Pair?
+    @Published var isLoading: Bool = false
+    @Published var errorMessage: String?
+    
+    private let authService = AuthService.shared
+    private let apiService = APIService.shared
+    
+    init() {
+        checkAuthenticationStatus()
+    }
+    
+    func checkAuthenticationStatus() {
+        Task {
+            if let token = KeychainHelper.shared.getToken() {
+                do {
+                    let user = try await apiService.getCurrentUser()
+                    self.currentUser = user
+                    self.isAuthenticated = true
+                    await loadCurrentPair()
+                } catch {
+                    KeychainHelper.shared.deleteToken()
+                    self.isAuthenticated = false
+                }
+            }
+        }
+    }
+    
+    func loadCurrentPair() async {
+        do {
+            self.currentPair = try await apiService.getCurrentPair()
+        } catch {
+            // No pair exists yet
+            self.currentPair = nil
+        }
+    }
+    
+    func logout() {
+        KeychainHelper.shared.deleteToken()
+        self.isAuthenticated = false
+        self.currentUser = nil
+        self.currentPair = nil
+    }
+}
+
