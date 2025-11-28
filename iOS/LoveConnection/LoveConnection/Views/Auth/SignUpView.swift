@@ -140,6 +140,7 @@ struct SignUpView: View {
                 appState.currentUser = response.user
                 appState.isAuthenticated = true
                 await appState.loadCurrentPair()
+                NotificationService.shared.sendDeviceTokenIfAuthenticated()
                 dismiss()
             } catch {
                 errorMessage = ErrorFormatter.userFriendlyMessage(from: error)
