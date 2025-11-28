@@ -34,7 +34,11 @@ struct ErrorFormatter {
             return "This information is already in use"
         }
 
-        if errorString.contains("invalid credentials") || errorString.contains("unauthorized") {
+        if errorString.contains("invalid credentials") || 
+           errorString.contains("unauthorized") ||
+           errorString.lowercased().contains("invalid email or password") ||
+           errorString.lowercased().contains("invalid email") ||
+           errorString.lowercased().contains("invalid password") {
             return "Invalid email or password"
         }
 
