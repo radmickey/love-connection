@@ -51,7 +51,7 @@
 	<key>NSCameraUsageDescription</key>
 	<string>We need camera access to scan QR codes for pairing with your partner.</string>
 	<key>DEBUG_BACKEND_URL</key>
-	<string>http://localhost:8080</string>
+	<string>http://84.252.141.42:8080</string>
 	<key>PRODUCTION_BACKEND_URL</key>
 	<string>http://84.252.141.42:8080</string>
 </dict>
