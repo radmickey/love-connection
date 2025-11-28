@@ -21,8 +21,11 @@ Fill in the form:
 - **Bundle Identifier**: Will auto-fill as `com.yourcompany.LoveConnection`
 - **Interface**: Select **SwiftUI**
 - **Language**: Select **Swift**
-- **Storage**: Select **None** (we'll add files manually)
-- **Include Tests**: Optional (you can uncheck if you don't need tests)
+- **Storage**: Select **None** ✅
+  - *Why?* We use backend API for data storage, not local Core Data/CloudKit
+- **Testing System**: Select **XCTest** ✅
+  - *Why?* Standard iOS testing framework (you can add tests later if needed)
+- **Include Tests**: You can check or uncheck (optional)
 
 Click **Next**
 

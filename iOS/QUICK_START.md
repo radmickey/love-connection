@@ -12,6 +12,8 @@ open -a Xcode
 - **iOS → App**
 - Name: `LoveConnection`
 - Interface: **SwiftUI**
+- **Storage**: **None** ✅ (we use backend API)
+- **Testing System**: **XCTest** ✅ (standard)
 - Save to: `/Users/radmickey/MyProjects/love-connection/iOS/`
 
 ### 3. Add Files
