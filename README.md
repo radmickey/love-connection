@@ -121,15 +121,15 @@ make build-backend
    ```
 
 2. **Configure Backend URL:**
-   
+
    Add `Info.plist` to the project and configure:
    - `DEBUG_BACKEND_URL`: `http://localhost:8080` (or your IP for physical device)
    - `PRODUCTION_BACKEND_URL`: `https://your-production-api.com`
-   
+
    The app automatically uses:
    - Debug builds → `DEBUG_BACKEND_URL`
    - Release builds → `PRODUCTION_BACKEND_URL`
-   
+
    **Note:** Users cannot change the URL - it's set at build time.
 
 3. Configure capabilities in Xcode:

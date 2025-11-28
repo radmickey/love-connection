@@ -3,7 +3,7 @@ import SwiftUI
 struct SettingsView: View {
     @EnvironmentObject var appState: AppState
     @State private var showingLogoutAlert = false
-    
+
     var body: some View {
         NavigationStack {
             Form {
@@ -13,7 +13,7 @@ struct SettingsView: View {
                     Text(Config.shared.baseURL)
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    
+
                     #if DEBUG
                     Text("Debug Build")
                         .font(.caption)
@@ -24,7 +24,7 @@ struct SettingsView: View {
                         .foregroundColor(.green)
                     #endif
                 }
-                
+
                 Section("Account") {
                     if let user = appState.currentUser {
                         Text("Username: \(user.username)")
@@ -32,7 +32,7 @@ struct SettingsView: View {
                             Text("Email: \(email)")
                         }
                     }
-                    
+
                     Button(role: .destructive, action: {
                         showingLogoutAlert = true
                     }) {

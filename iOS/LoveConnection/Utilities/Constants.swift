@@ -16,7 +16,7 @@ struct Constants {
         static let stats = "/api/stats"
         static let websocket = "/ws"
     }
-    
+
     struct Colors {
         static let heartColor = "heartRed"
         static let backgroundColor = "background"
