@@ -2,26 +2,27 @@ import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject var appState: AppState
-    @State private var backendURL: String = ""
     @State private var showingLogoutAlert = false
     
     var body: some View {
         NavigationStack {
             Form {
-                Section("Backend Configuration") {
-                    TextField("Backend URL", text: $backendURL)
-                        .autocapitalization(.none)
-                        .keyboardType(.URL)
-                        .autocorrectionDisabled()
-                    
-                    Text("Current: \(Config.shared.baseURL)")
+                Section("Backend Information") {
+                    Text("Backend URL")
+                        .font(.headline)
+                    Text(Config.shared.baseURL)
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
-                    Button("Save URL") {
-                        UserDefaults.standard.set(backendURL, forKey: "backend_url")
-                    }
-                    .disabled(backendURL.isEmpty)
+                    #if DEBUG
+                    Text("Debug Build")
+                        .font(.caption)
+                        .foregroundColor(.orange)
+                    #else
+                    Text("Production Build")
+                        .font(.caption)
+                        .foregroundColor(.green)
+                    #endif
                 }
                 
                 Section("Account") {
@@ -40,9 +41,6 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("Settings")
-            .onAppear {
-                backendURL = UserDefaults.standard.string(forKey: "backend_url") ?? ""
-            }
             .alert("Logout", isPresented: $showingLogoutAlert) {
                 Button("Cancel", role: .cancel) {}
                 Button("Logout", role: .destructive) {
@@ -54,4 +52,3 @@ struct SettingsView: View {
         }
     }
 }
-

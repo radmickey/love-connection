@@ -1,80 +1,66 @@
-# iOS App Configuration
+# iOS App Setup
+
+## Quick Start
+
+1. Open the project in Xcode:
+   ```bash
+   open iOS/LoveConnection.xcodeproj
+   ```
+
+2. **Configure Backend URL** (see `CONFIGURATION.md` for details):
+   - Add `Info.plist` to the project
+   - Set `DEBUG_BACKEND_URL` for development
+   - Set `PRODUCTION_BACKEND_URL` for production
+
+3. Configure capabilities in Xcode:
+   - Sign in with Apple
+   - Push Notifications
+   - Camera (for QR code scanning)
+
+4. Build and run (⌘R)
 
 ## Backend URL Configuration
 
-The iOS app needs to know where to connect to the backend server. There are several ways to configure this:
+The app uses different URLs for Debug and Release builds:
 
-### 1. Default Configuration (Development)
+- **Debug**: Reads from `Info.plist` → `DEBUG_BACKEND_URL` (default: `http://localhost:8080`)
+- **Release**: Reads from `Info.plist` → `PRODUCTION_BACKEND_URL` (default: `https://api.loveconnection.app`)
 
-By default, the app uses:
-- **Simulator**: `http://localhost:8080`
-- **Physical Device**: You need to configure the URL manually (see below)
+**Users cannot change the URL** - it's configured at build time through `Info.plist`.
 
-### 2. Using Settings Screen
+See `CONFIGURATION.md` for detailed setup instructions.
 
-1. Open the app
-2. Go to the "Settings" tab
-3. Enter your backend URL in the "Backend URL" field
-4. Tap "Save URL"
+## For Physical Device Testing
 
-The URL will be saved and used for all API requests.
+When testing on a physical device:
 
-### 3. For Physical Device Testing
-
-When testing on a physical device, you cannot use `localhost`. Instead:
-
-1. Find your computer's IP address:
+1. Find your computer's IP:
    ```bash
-   # macOS/Linux
-   ifconfig | grep "inet " | grep -v 127.0.0.1
-   
-   # Or use
    ipconfig getifaddr en0
    ```
 
-2. Update the backend URL in Settings to:
+2. Update `DEBUG_BACKEND_URL` in `Info.plist`:
    ```
-   http://YOUR_IP_ADDRESS:8080
+   http://YOUR_IP:8080
    ```
-   Example: `http://192.168.1.100:8080`
 
-3. Make sure your computer and device are on the same network
+3. Ensure device and computer are on the same Wi-Fi network
 
-4. Ensure your firewall allows connections on port 8080
+4. Make sure backend is running: `make start`
 
-### 4. For Production
+## Project Structure
 
-Update `Constants.swift`:
-```swift
-static let baseURL = "https://your-production-api.com"
 ```
-
-Or use the Settings screen to configure it at runtime.
-
-## Network Requirements
-
-- The device must be able to reach the backend server
-- For local development, ensure backend is running: `make start`
-- For production, use HTTPS URLs
-
-## Troubleshooting
-
-### "Cannot connect to server" error
-
-1. Check if backend is running: `curl http://localhost:8080/api/user/me`
-2. Verify the URL in Settings matches your backend
-3. For physical device, ensure you're using your computer's IP, not `localhost`
-4. Check firewall settings
-
-### Simulator can't connect
-
-- Make sure backend is running on `localhost:8080`
-- Try `http://127.0.0.1:8080` instead
-
-### Physical device can't connect
-
-- Verify both device and computer are on the same Wi-Fi network
-- Check that your computer's firewall allows port 8080
-- Try pinging your computer's IP from the device
-- Use `http://` not `https://` for local development
-
+LoveConnection/
+├── App/              # App entry point and state
+├── Models/           # Data models
+├── Services/         # API, Auth, Notifications, WebSocket
+├── Views/            # SwiftUI views
+│   ├── Auth/        # Login, Sign up
+│   ├── Pairing/     # QR scanning, pair requests
+│   ├── Main/        # Heart button, tabs
+│   ├── History/     # Love events history
+│   ├── Stats/       # Statistics
+│   └── Settings/    # Settings screen
+└── Utilities/        # Helpers, Config, Constants
+```

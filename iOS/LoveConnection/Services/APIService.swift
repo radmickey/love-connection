@@ -9,7 +9,7 @@ import Foundation
 
 class APIService {
     static let shared = APIService()
-    
+
     private var baseURL: String {
         Config.shared.baseURL
     }

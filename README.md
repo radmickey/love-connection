@@ -122,18 +122,15 @@ make build-backend
 
 2. **Configure Backend URL:**
    
-   **For Simulator (default):**
-   - Uses `http://localhost:8080` automatically
-   - No configuration needed if backend runs on localhost
+   Add `Info.plist` to the project and configure:
+   - `DEBUG_BACKEND_URL`: `http://localhost:8080` (or your IP for physical device)
+   - `PRODUCTION_BACKEND_URL`: `https://your-production-api.com`
    
-   **For Physical Device:**
-   - Find your computer's IP: `ipconfig getifaddr en0` (macOS)
-   - Open app → Settings tab → Enter `http://YOUR_IP:8080`
-   - Or update `Constants.swift` directly
+   The app automatically uses:
+   - Debug builds → `DEBUG_BACKEND_URL`
+   - Release builds → `PRODUCTION_BACKEND_URL`
    
-   **For Production:**
-   - Update `Constants.swift` with production URL
-   - Or configure via Settings screen in the app
+   **Note:** Users cannot change the URL - it's set at build time.
 
 3. Configure capabilities in Xcode:
    - Sign in with Apple
@@ -142,7 +139,7 @@ make build-backend
 
 4. Build and run in Xcode (⌘R)
 
-See `iOS/README.md` for detailed configuration instructions.
+See `iOS/CONFIGURATION.md` for detailed setup instructions.
 
 ## Available Make Commands
 

@@ -1,12 +1,6 @@
 import Foundation
 
 struct Constants {
-    #if DEBUG
-    static let baseURL = "http://localhost:8080"
-    #else
-    static let baseURL = "https://api.loveconnection.app"
-    #endif
-    
     struct API {
         static let authRegister = "/api/auth/register"
         static let authLogin = "/api/auth/login"
