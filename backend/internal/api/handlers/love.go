@@ -59,7 +59,7 @@ func (h *LoveHandler) SendLove(c *gin.Context) {
 
 	var event models.LoveEvent
 	var sender models.User
-	var pairID sql.NullString
+	var pairIDNullable sql.NullString
 	err = h.db.QueryRow(
 		`SELECT e.id, e.pair_id, e.sender_id, e.duration_seconds, e.created_at,
 			u.id, u.email, u.apple_id, u.username, u.created_at
@@ -68,20 +68,20 @@ func (h *LoveHandler) SendLove(c *gin.Context) {
 		WHERE e.id = $1`,
 		eventID,
 	).Scan(
-		&event.ID, &pairID, &event.SenderID, &event.DurationSeconds, &event.CreatedAt,
+		&event.ID, &pairIDNullable, &event.SenderID, &event.DurationSeconds, &event.CreatedAt,
 		&sender.ID, &sender.Email, &sender.AppleID, &sender.Username, &sender.CreatedAt,
 	)
-
-	if pairID.Valid {
-		parsedID, err := uuid.Parse(pairID.String)
-		if err == nil {
-			event.PairID = &parsedID
-		}
-	}
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch event"})
 		return
+	}
+
+	if pairIDNullable.Valid {
+		parsedID, err := uuid.Parse(pairIDNullable.String)
+		if err == nil {
+			event.PairID = &parsedID
+		}
 	}
 
 	event.Sender = &sender

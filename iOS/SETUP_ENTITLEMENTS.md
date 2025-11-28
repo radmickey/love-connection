@@ -38,7 +38,7 @@ This guide explains how to configure entitlements for Push Notifications and Sig
 
 ## Notes
 
-- **Simulator Limitations**: 
+- **Simulator Limitations**:
   - Push notifications don't work fully in the iOS Simulator
   - Apple Sign In may require additional configuration in simulator
   - For full testing, use a real device
