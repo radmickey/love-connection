@@ -2,10 +2,17 @@
 
 set -e
 
-SVG_FILE="iOS/LoveConnection/Assets/AppIcon.svg"
-OUTPUT_DIR="iOS/LoveConnection/Assets/AppIcon"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+SVG_FILE="$PROJECT_ROOT/iOS/LoveConnection/Assets/AppIcon.svg"
+OUTPUT_DIR="$PROJECT_ROOT/iOS/LoveConnection/LoveConnection/Assets/AppIcon"
+
+cd "$PROJECT_ROOT"
 
 echo "🎨 Generating App Icon from SVG..."
+echo "SVG: $SVG_FILE"
+echo "Output: $OUTPUT_DIR"
 
 if ! command -v rsvg-convert &> /dev/null && ! command -v convert &> /dev/null; then
     echo "❌ Image conversion tools not found."
