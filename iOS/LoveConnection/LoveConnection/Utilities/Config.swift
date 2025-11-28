@@ -9,7 +9,7 @@ class Config {
         #if DEBUG
         return getBackendURL(for: "DEBUG_BACKEND_URL") ?? "http://localhost:8080"
         #else
-        return getBackendURL(for: "PRODUCTION_BACKEND_URL") ?? "http://84.252.141.42:8080"
+        return getBackendURL(for: "PRODUCTION_BACKEND_URL") ?? "https://love-couple-connect.duckdns.org"
         #endif
     }
 

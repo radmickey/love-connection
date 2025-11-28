@@ -13,14 +13,14 @@ if [ -f /etc/nginx/sites-available/loveconnection ]; then
     cat /etc/nginx/sites-available/loveconnection
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo ""
-    
+
     # Check if port 80 is configured
     if grep -q "listen 80" /etc/nginx/sites-available/loveconnection; then
         echo "✅ Port 80 is configured"
     else
         echo "❌ Port 80 is NOT configured!"
     fi
-    
+
     # Check if proxy_pass points to 8080
     if grep -q "proxy_pass http://localhost:8080" /etc/nginx/sites-available/loveconnection; then
         echo "✅ proxy_pass points to port 8080 (correct)"
