@@ -36,7 +36,7 @@ struct LoveEvent: Codable, Identifiable, Equatable {
         }
         return "\(seconds) сек"
     }
-    
+
     static func == (lhs: LoveEvent, rhs: LoveEvent) -> Bool {
         lhs.id == rhs.id
     }

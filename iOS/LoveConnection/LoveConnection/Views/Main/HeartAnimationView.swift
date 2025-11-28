@@ -3,7 +3,7 @@ import SwiftUI
 struct HeartAnimationView: View {
     let isAnimating: Bool
     @State private var scale: CGFloat = 1.0
-    
+
     var body: some View {
         Image(systemName: "heart.fill")
             .font(.system(size: 120))
@@ -17,13 +17,13 @@ struct HeartAnimationView: View {
                 }
             })
     }
-    
+
     private func startAnimation() {
         withAnimation(.easeInOut(duration: 0.6).repeatForever(autoreverses: true)) {
             scale = 1.15
         }
     }
-    
+
     private func stopAnimation() {
         withAnimation(.easeInOut(duration: 0.3)) {
             scale = 1.0
