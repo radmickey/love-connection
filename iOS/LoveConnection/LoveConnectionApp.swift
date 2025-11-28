@@ -16,7 +16,9 @@ struct LoveConnectionApp: App {
     init() {
         Task {
             _ = await NotificationService.shared.requestAuthorization()
+            #if !targetEnvironment(simulator)
             NotificationService.shared.registerForRemoteNotifications()
+            #endif
         }
     }
 

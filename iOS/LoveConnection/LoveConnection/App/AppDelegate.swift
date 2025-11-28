@@ -10,7 +10,11 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     }
 
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        #if !targetEnvironment(simulator)
         print("Failed to register for remote notifications: \(error)")
+        #else
+        print("Note: Push notifications are not fully supported in simulator")
+        #endif
     }
 }
 
