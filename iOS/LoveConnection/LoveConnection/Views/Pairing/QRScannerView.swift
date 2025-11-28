@@ -215,17 +215,17 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
 
     func stopScanning() {
         print("📷 QRScanner: stopScanning() called")
-        
+
         let semaphore = DispatchSemaphore(value: 0)
-        
+
         DispatchQueue.main.sync {
             print("📷 QRScanner: Disconnecting preview layer on main thread")
             NotificationCenter.default.post(name: NSNotification.Name("CaptureSessionStopping"), object: nil)
             semaphore.signal()
         }
-        
+
         semaphore.wait()
-        
+
         sessionQueue.async { [weak self] in
             guard let self = self else {
                 print("❌ QRScanner: Self is nil in stopScanning")
@@ -294,8 +294,8 @@ class PreviewViewController: UIViewController {
         updatePreviewLayer()
     }
 
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
         disconnectPreviewLayer()
     }
 
@@ -322,7 +322,7 @@ class PreviewViewController: UIViewController {
         ) { [weak self] notification in
             self?.updatePreviewLayer()
         }
-        
+
         stoppingObserver = NotificationCenter.default.addObserver(
             forName: NSNotification.Name("CaptureSessionStopping"),
             object: nil,
@@ -331,7 +331,7 @@ class PreviewViewController: UIViewController {
             self?.disconnectPreviewLayer()
         }
     }
-    
+
     private func disconnectPreviewLayer() {
         guard !isDisconnected, let previewLayer = previewLayer else { return }
         print("📷 PreviewViewController: Disconnecting preview layer from session")
@@ -358,13 +358,18 @@ class PreviewViewController: UIViewController {
         }
 
         if let captureSession = scanner?.captureSession {
-            if previewLayer.session == nil {
+            if previewLayer.session == nil && !isDisconnected {
                 print("📷 PreviewViewController: Setting session (was nil)")
-                previewLayer.session = captureSession
-            } else if previewLayer.session !== captureSession {
+                if captureSession.inputs.count > 0 && captureSession.outputs.count > 0 {
+                    previewLayer.session = captureSession
+                    print("✅ PreviewViewController: Session connected successfully")
+                } else {
+                    print("⚠️ PreviewViewController: Session not ready yet (inputs: \(captureSession.inputs.count), outputs: \(captureSession.outputs.count))")
+                }
+            } else if previewLayer.session !== captureSession && !isDisconnected {
                 print("📷 PreviewViewController: Replacing session")
                 previewLayer.session = captureSession
-            } else {
+            } else if previewLayer.session === captureSession {
                 print("✅ PreviewViewController: Session already set correctly")
             }
         } else {
