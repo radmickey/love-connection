@@ -89,8 +89,14 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
     var captureSession: AVCaptureSession?
     private let sessionQueue = DispatchQueue(label: "com.loveconnection.captureSession")
     private var sessionState: SessionState = .idle
+    private var previewLayerDisconnectCallback: (() -> Void)?
+    
     private var isSessionRunning: Bool {
         return sessionState == .running
+    }
+    
+    func setPreviewLayerDisconnectCallback(_ callback: @escaping () -> Void) {
+        previewLayerDisconnectCallback = callback
     }
 
     func startScanning() {
@@ -135,7 +141,7 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
         print("📷 QRScanner: Requesting camera access...")
         AVCaptureDevice.requestAccess(for: .video) { [weak self] granted in
             guard let self = self else { return }
-            
+
             if granted {
                 print("✅ QRScanner: Camera access granted")
             } else {
@@ -274,38 +280,50 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
         }
 
         sessionState = .stopping
-        print("📷 QRScanner: Notifying preview layer to disconnect")
-        NotificationCenter.default.post(name: NSNotification.Name("CaptureSessionStopping"), object: nil)
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
+        let semaphore = DispatchSemaphore(value: 0)
+        
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else {
+                semaphore.signal()
+                return
+            }
+            print("📷 QRScanner: Disconnecting preview layer synchronously on main thread")
+            self.previewLayerDisconnectCallback?()
+            NotificationCenter.default.post(name: NSNotification.Name("CaptureSessionStopping"), object: nil)
+            semaphore.signal()
+        }
+        
+        semaphore.wait()
+        print("✅ QRScanner: Preview layer disconnected, proceeding to stop session")
+
+        sessionQueue.async { [weak self] in
             guard let self = self else { return }
-            self.sessionQueue.async {
-                guard self.sessionState == .stopping else {
-                    print("⚠️ QRScanner: State changed to \(self.sessionState) during stop")
-                    return
+            guard self.sessionState == .stopping else {
+                print("⚠️ QRScanner: State changed to \(self.sessionState) during stop")
+                return
+            }
+
+            print("📷 QRScanner: Checking session state... isRunning: \(captureSession.isRunning)")
+
+            if captureSession.isRunning {
+                print("📷 QRScanner: Stopping session on background thread...")
+                captureSession.stopRunning()
+
+                var attempts = 0
+                while captureSession.isRunning && attempts < 20 {
+                    Thread.sleep(forTimeInterval: 0.05)
+                    attempts += 1
                 }
 
-                print("📷 QRScanner: Checking session state... isRunning: \(captureSession.isRunning)")
+                print("✅ QRScanner: Session stopped, isRunning: \(captureSession.isRunning) after \(attempts) attempts")
+            } else {
+                print("⚠️ QRScanner: Session was not running")
+            }
 
-                if captureSession.isRunning {
-                    print("📷 QRScanner: Stopping session on background thread...")
-                    captureSession.stopRunning()
-                    
-                    var attempts = 0
-                    while captureSession.isRunning && attempts < 20 {
-                        Thread.sleep(forTimeInterval: 0.05)
-                        attempts += 1
-                    }
-                    
-                    print("✅ QRScanner: Session stopped, isRunning: \(captureSession.isRunning) after \(attempts) attempts")
-                } else {
-                    print("⚠️ QRScanner: Session was not running")
-                }
-
-                DispatchQueue.main.async {
-                    self.sessionState = .idle
-                    print("✅ QRScanner: State reset to idle")
-                }
+            DispatchQueue.main.async {
+                self.sessionState = .idle
+                print("✅ QRScanner: State reset to idle")
             }
         }
     }
@@ -338,7 +356,11 @@ struct QRScannerPreview: UIViewRepresentable {
     let scanner: QRScanner
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(scanner: scanner)
+        let coordinator = Coordinator(scanner: scanner)
+        scanner.setPreviewLayerDisconnectCallback { [weak coordinator] in
+            coordinator?.disconnectPreviewLayer()
+        }
+        return coordinator
     }
 
     func makeUIView(context: Context) -> PreviewView {
@@ -412,10 +434,17 @@ struct QRScannerPreview: UIViewRepresentable {
                 object: nil,
                 queue: .main
             ) { [weak self] _ in
-                guard let self = self, let previewView = self.previewView else { return }
-                print("📷 QRScannerPreview Coordinator: Disconnecting preview layer")
-                previewView.setSession(nil)
+                self?.disconnectPreviewLayer()
             }
+        }
+        
+        func disconnectPreviewLayer() {
+            guard let previewView = previewView else {
+                print("⚠️ QRScannerPreview Coordinator: No preview view to disconnect")
+                return
+            }
+            print("📷 QRScannerPreview Coordinator: Disconnecting preview layer synchronously")
+            previewView.setSession(nil)
         }
 
         func cleanup() {
@@ -425,7 +454,7 @@ struct QRScannerPreview: UIViewRepresentable {
             if let observer = stoppingObserver {
                 NotificationCenter.default.removeObserver(observer)
             }
-            previewView?.setSession(nil)
+            disconnectPreviewLayer()
         }
     }
 }
