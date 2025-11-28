@@ -19,49 +19,55 @@ struct LoginView: View {
                     .fontWeight(.bold)
 
                 VStack(spacing: 16) {
-                    TextField("Email", text: $email)
-                        .textFieldStyle(.roundedBorder)
-                        .autocapitalization(.none)
-                        .keyboardType(.emailAddress)
-                        .autocorrectionDisabled()
-                        .submitLabel(.next)
-                        .onSubmit {
-                            // Focus moves to password field
-                        }
+                    if FeatureFlags.enableEmailPasswordAuth {
+                        TextField("Email", text: $email)
+                            .textFieldStyle(.roundedBorder)
+                            .autocapitalization(.none)
+                            .keyboardType(.emailAddress)
+                            .autocorrectionDisabled()
+                            .submitLabel(.next)
+                            .onSubmit {
+                                // Focus moves to password field
+                            }
 
-                    SecureField("Password", text: $password)
-                        .textFieldStyle(.roundedBorder)
-                        .submitLabel(.go)
-                        .onSubmit {
-                            if !email.isEmpty && !password.isEmpty {
-                                login()
+                        SecureField("Password", text: $password)
+                            .textFieldStyle(.roundedBorder)
+                            .submitLabel(.go)
+                            .onSubmit {
+                                if !email.isEmpty && !password.isEmpty {
+                                    login()
+                                }
+                            }
+
+                        Button(action: login) {
+                            if isLoading {
+                                ProgressView()
+                                    .frame(maxWidth: .infinity)
+                            } else {
+                                Text("Login")
+                                    .frame(maxWidth: .infinity)
                             }
                         }
+                        .buttonStyle(.borderedProminent)
+                        .disabled(isLoading || email.isEmpty || password.isEmpty)
+                    }
 
-                    Button(action: login) {
-                        if isLoading {
-                            ProgressView()
-                                .frame(maxWidth: .infinity)
-                        } else {
-                            Text("Login")
-                                .frame(maxWidth: .infinity)
+                    if FeatureFlags.enableAppleSignIn {
+                        AppleSignInButton()
+
+                        #if targetEnvironment(simulator)
+                        Text("Note: Apple Sign In requires a real device")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                        #endif
+                    }
+
+                    if FeatureFlags.enableEmailPasswordAuth {
+                        Button("Don't have an account? Sign up") {
+                            showingSignUp = true
                         }
+                        .font(.caption)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(isLoading || email.isEmpty || password.isEmpty)
-
-                    AppleSignInButton()
-
-                    #if targetEnvironment(simulator)
-                    Text("Note: Apple Sign In requires a real device")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                    #endif
-
-                    Button("Don't have an account? Sign up") {
-                        showingSignUp = true
-                    }
-                    .font(.caption)
                 }
                 .padding(.horizontal)
 
