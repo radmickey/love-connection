@@ -16,9 +16,9 @@ struct AppleSignInButton: View {
                 handleSignInResult(result)
             }
             .frame(height: 50)
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, alignment: .center)
             .cornerRadius(8)
-            
+
             if let errorMessage = errorMessage {
                 Text(errorMessage)
                     .font(.caption)
@@ -46,7 +46,7 @@ struct AppleSignInButton: View {
                 showError = true
                 return
             }
-            
+
             guard let identityTokenData = appleIDCredential.identityToken,
                   let identityToken = String(data: identityTokenData, encoding: .utf8) else {
                 print("❌ Failed to get identity token")
@@ -54,7 +54,7 @@ struct AppleSignInButton: View {
                 showError = true
                 return
             }
-            
+
             guard let authorizationCodeData = appleIDCredential.authorizationCode,
                   let authorizationCode = String(data: authorizationCodeData, encoding: .utf8) else {
                 print("❌ Failed to get authorization code")
@@ -62,7 +62,7 @@ struct AppleSignInButton: View {
                 showError = true
                 return
             }
-            
+
             print("✅ Got credentials, proceeding with sign in")
 
             let username = [appleIDCredential.fullName?.givenName, appleIDCredential.fullName?.familyName]
@@ -93,7 +93,7 @@ struct AppleSignInButton: View {
             print("❌ Apple Sign In failed: \(error)")
             let nsError = error as NSError
             print("   Domain: \(nsError.domain), Code: \(nsError.code)")
-            
+
             #if targetEnvironment(simulator)
             if nsError.domain == "com.apple.AuthenticationServices.AuthorizationError" ||
                nsError.domain == "AKAuthenticationError" {
