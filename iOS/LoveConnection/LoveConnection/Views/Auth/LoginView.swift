@@ -55,7 +55,6 @@ struct LoginView: View {
 
                     if featureFlags.enableAppleSignIn {
                         AppleSignInButton()
-                            .frame(maxWidth: .infinity)
 
                         #if targetEnvironment(simulator)
                         Text("Note: Apple Sign In requires a real device")
