@@ -216,7 +216,7 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
 
     func stopScanning() {
         print("📷 QRScanner: stopScanning() called")
-        
+
         sessionQueue.async { [weak self] in
             guard let self = self else {
                 print("❌ QRScanner: Self is nil in stopScanning")
@@ -242,7 +242,7 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
                 print("⚠️ QRScanner: Session was not running")
                 self.isSessionRunning = false
             }
-            
+
             DispatchQueue.main.async {
                 print("📷 QRScanner: Posting CaptureSessionStopping notification")
                 NotificationCenter.default.post(name: NSNotification.Name("CaptureSessionStopping"), object: nil)
@@ -295,7 +295,9 @@ class PreviewViewController: UIViewController {
 
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
-        disconnectPreviewLayer()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+            self?.disconnectPreviewLayer()
+        }
     }
 
     override func viewDidLayoutSubviews() {
@@ -327,7 +329,9 @@ class PreviewViewController: UIViewController {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            self?.disconnectPreviewLayer()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                self?.disconnectPreviewLayer()
+            }
         }
     }
 
