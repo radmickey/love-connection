@@ -40,6 +40,7 @@
 		257E58C72EDA25160026A57B /* PairingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 257E589D2EDA25160026A57B /* PairingView.swift */; };
 		257E58C82EDA25160026A57B /* HeartButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 257E589A2EDA25160026A57B /* HeartButtonView.swift */; };
 		25B9A02C2EDA403B00053520 /* FeatureFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25B9A02B2EDA403B00053520 /* FeatureFlags.swift */; };
+		25B9A03D2EDA459F00053520 /* AppIcon.svg in Resources */ = {isa = PBXBuildFile; fileRef = 25B9A03B2EDA459F00053520 /* AppIcon.svg */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -96,6 +97,7 @@
 		257E58A62EDA25160026A57B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		257E58A92EDA25160026A57B /* LoveConnectionApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoveConnectionApp.swift; sourceTree = "<group>"; };
 		25B9A02B2EDA403B00053520 /* FeatureFlags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureFlags.swift; sourceTree = "<group>"; };
+		25B9A03B2EDA459F00053520 /* AppIcon.svg */ = {isa = PBXFileReference; lastKnownFileType = text; path = AppIcon.svg; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -139,6 +141,7 @@
 		257E584D2EDA24B80026A57B = {
 			isa = PBXGroup;
 			children = (
+				25B9A03C2EDA459F00053520 /* Assets */,
 				257E58662EDA24B90026A57B /* LoveConnectionTests */,
 				257E58702EDA24B90026A57B /* LoveConnectionUITests */,
 				257E58572EDA24B80026A57B /* Products */,
@@ -284,6 +287,14 @@
 			path = LoveConnection;
 			sourceTree = "<group>";
 		};
+		25B9A03C2EDA459F00053520 /* Assets */ = {
+			isa = PBXGroup;
+			children = (
+				25B9A03B2EDA459F00053520 /* AppIcon.svg */,
+			);
+			path = Assets;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -401,6 +412,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				25B9A03D2EDA459F00053520 /* AppIcon.svg in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
