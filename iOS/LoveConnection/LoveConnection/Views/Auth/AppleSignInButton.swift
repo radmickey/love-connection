@@ -40,6 +40,7 @@ struct AppleSignInButton: View {
                     )
                     appState.currentUser = response.user
                     appState.isAuthenticated = true
+                    NotificationService.shared.sendDeviceTokenIfAuthenticated()
                     await appState.loadCurrentPair()
                 } catch {
                     errorMessage = error.localizedDescription

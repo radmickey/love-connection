@@ -24,6 +24,7 @@ class AppState: ObservableObject {
                     self.currentUser = user
                     self.isAuthenticated = true
                     await loadCurrentPair()
+                    NotificationService.shared.sendDeviceTokenIfAuthenticated()
                 } catch {
                     KeychainHelper.shared.deleteToken()
                     self.isAuthenticated = false

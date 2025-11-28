@@ -57,11 +57,11 @@ sudo certbot renew --dry-run
 
 ## Security Status
 
-✅ **HTTPS enabled**  
-✅ **HTTP → HTTPS redirect**  
-✅ **Valid SSL certificate**  
-✅ **Auto-renewal configured**  
-✅ **ATS exceptions removed**  
+✅ **HTTPS enabled**
+✅ **HTTP → HTTPS redirect**
+✅ **Valid SSL certificate**
+✅ **Auto-renewal configured**
+✅ **ATS exceptions removed**
 
 Your app is now ready for App Store submission! 🎉
 
