@@ -5,18 +5,18 @@
       <stop offset="100%" style="stop-color:#FF1744;stop-opacity:1" />
     </linearGradient>
   </defs>
-  
+
   <!-- Square background with gradient -->
   <rect width="1024" height="1024" fill="url(#heartGradient)"/>
-  
+
   <!-- Main heart - centered and larger -->
-  <path d="M512 750 C512 750, 180 500, 180 350 C180 250, 260 200, 330 230 C380 250, 512 350, 512 350 C512 350, 644 250, 694 230 C764 200, 844 250, 844 350 C844 500, 512 750, 512 750 Z" 
-        fill="#FFFFFF" 
+  <path d="M512 750 C512 750, 180 500, 180 350 C180 250, 260 200, 330 230 C380 250, 512 350, 512 350 C512 350, 644 250, 694 230 C764 200, 844 250, 844 350 C844 500, 512 750, 512 750 Z"
+        fill="#FFFFFF"
         opacity="0.95"/>
-  
+
   <!-- Smaller heart inside for depth -->
-  <path d="M512 680 C512 680, 280 480, 280 380 C280 320, 330 290, 380 310 C410 320, 512 400, 512 400 C512 400, 614 320, 644 310 C694 290, 744 320, 744 380 C744 480, 512 680, 512 680 Z" 
-        fill="url(#heartGradient)" 
+  <path d="M512 680 C512 680, 280 480, 280 380 C280 320, 330 290, 380 310 C410 320, 512 400, 512 400 C512 400, 614 320, 644 310 C694 290, 744 320, 744 380 C744 480, 512 680, 512 680 Z"
+        fill="url(#heartGradient)"
         opacity="0.8"/>
 </svg>
 
