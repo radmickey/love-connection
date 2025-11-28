@@ -2,10 +2,12 @@ package handlers
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"love-connection/backend/internal/models"
 	"love-connection/backend/internal/services"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -118,16 +120,20 @@ func (h *AuthHandler) Login(c *gin.Context) {
 }
 
 func (h *AuthHandler) AppleSignIn(c *gin.Context) {
+	log.SetOutput(os.Stdout)
 	log.Printf("🔵 Apple Sign In: Handler called")
+	fmt.Fprintf(os.Stdout, "🔵 Apple Sign In: Handler called\n")
 
 	var req models.AppleSignInRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Printf("❌ Apple Sign In: Invalid request: %v", err)
+		fmt.Fprintf(os.Stdout, "❌ Apple Sign In: Invalid request: %v\n", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	log.Printf("🔵 Apple Sign In: UserIdentifier=%s (length=%d), Username=%v", req.UserIdentifier, len(req.UserIdentifier), req.Username)
+	fmt.Fprintf(os.Stdout, "🔵 Apple Sign In: UserIdentifier=%s (length=%d), Username=%v\n", req.UserIdentifier, len(req.UserIdentifier), req.Username)
 
 	var user models.User
 	var userID uuid.UUID
@@ -159,6 +165,9 @@ func (h *AuthHandler) AppleSignIn(c *gin.Context) {
 			log.Printf("❌ Apple Sign In: Failed to create user: %v", err)
 			log.Printf("❌ Apple Sign In: UserIdentifier length: %d, Username: %s", len(req.UserIdentifier), username)
 			log.Printf("❌ Apple Sign In: Full error details: %+v", err)
+			fmt.Fprintf(os.Stdout, "❌ Apple Sign In: Failed to create user: %v\n", err)
+			fmt.Fprintf(os.Stdout, "❌ Apple Sign In: UserIdentifier length: %d, Username: %s\n", len(req.UserIdentifier), username)
+			fmt.Fprintf(os.Stdout, "❌ Apple Sign In: Full error details: %+v\n", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user: " + err.Error()})
 			return
 		}
