@@ -53,6 +53,6 @@
 	<key>DEBUG_BACKEND_URL</key>
 	<string>http://localhost:8080</string>
 	<key>PRODUCTION_BACKEND_URL</key>
-	<string>https://api.loveconnection.app</string>
+	<string>http://84.252.141.42:8080</string>
 </dict>
 </plist>
