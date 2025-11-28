@@ -6,6 +6,7 @@ This guide explains how to set up HTTPS for your Go backend server using nginx a
 
 - Server with root/sudo access
 - Domain name pointing to your server IP (84.252.141.42)
+  - **Don't have a domain?** See [SETUP_HTTPS_NO_DOMAIN.md](./SETUP_HTTPS_NO_DOMAIN.md) for alternatives
 - Ports 80 and 443 open in firewall
 - nginx installed (or install it)
 
