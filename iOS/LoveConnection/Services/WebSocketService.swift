@@ -16,7 +16,7 @@ class WebSocketService: ObservableObject {
         guard let token = KeychainHelper.shared.getToken() else {
             return
         }
-        
+
         let baseURLString = Config.shared.baseURL
         var wsURLString = baseURLString
         if baseURLString.hasPrefix("https://") {
@@ -24,14 +24,14 @@ class WebSocketService: ObservableObject {
         } else if baseURLString.hasPrefix("http://") {
             wsURLString = baseURLString.replacingOccurrences(of: "http://", with: "ws://")
         }
-        
+
         guard let wsURL = URL(string: wsURLString + Constants.API.websocket) else {
             return
         }
 
         var request = URLRequest(url: wsURL)
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        
+
         let session = URLSession(configuration: .default)
         webSocketTask = session.webSocketTask(with: request)
         webSocketTask?.resume()
