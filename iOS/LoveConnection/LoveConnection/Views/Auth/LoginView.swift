@@ -2,6 +2,7 @@ import SwiftUI
 
 struct LoginView: View {
     @EnvironmentObject var appState: AppState
+    @StateObject private var featureFlags = FeatureFlags.shared
     @State private var email = ""
     @State private var password = ""
     @State private var showingSignUp = false
@@ -19,7 +20,7 @@ struct LoginView: View {
                     .fontWeight(.bold)
 
                 VStack(spacing: 16) {
-                    if FeatureFlags.enableEmailPasswordAuth {
+                    if featureFlags.enableEmailPasswordAuth {
                         TextField("Email", text: $email)
                             .textFieldStyle(.roundedBorder)
                             .autocapitalization(.none)
@@ -52,7 +53,7 @@ struct LoginView: View {
                         .disabled(isLoading || email.isEmpty || password.isEmpty)
                     }
 
-                    if FeatureFlags.enableAppleSignIn {
+                    if featureFlags.enableAppleSignIn {
                         AppleSignInButton()
 
                         #if targetEnvironment(simulator)
@@ -62,7 +63,7 @@ struct LoginView: View {
                         #endif
                     }
 
-                    if FeatureFlags.enableEmailPasswordAuth {
+                    if featureFlags.enableEmailPasswordAuth {
                         Button("Don't have an account? Sign up") {
                             showingSignUp = true
                         }

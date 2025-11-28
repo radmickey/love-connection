@@ -17,6 +17,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, hub *websocket.Hub) {
 
 	healthHandler := handlers.NewHealthHandler(db)
 	r.GET("/health", healthHandler.HealthCheck)
+	r.GET("/api/feature-flags", handlers.GetFeatureFlags)
 
 	api := r.Group("/api")
 	{
