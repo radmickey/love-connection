@@ -105,6 +105,7 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
 
     private func setupCaptureSession() {
         guard let videoCaptureDevice = AVCaptureDevice.default(for: .video) else {
+            print("No video capture device available")
             return
         }
 
@@ -118,12 +119,14 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
         }
 
         let captureSession = AVCaptureSession()
+        captureSession.beginConfiguration()
         captureSession.sessionPreset = .high
 
         if captureSession.canAddInput(videoInput) {
             captureSession.addInput(videoInput)
         } else {
             print("Cannot add video input")
+            captureSession.commitConfiguration()
             return
         }
 
@@ -136,8 +139,11 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
             metadataOutput.metadataObjectTypes = [.qr]
         } else {
             print("Cannot add metadata output")
+            captureSession.commitConfiguration()
             return
         }
+
+        captureSession.commitConfiguration()
 
         DispatchQueue.main.async { [weak self] in
             self?.captureSession = captureSession
@@ -209,8 +215,12 @@ class PreviewViewController: UIViewController {
     func updatePreviewLayer() {
         guard let previewLayer = previewLayer else { return }
 
-        if let captureSession = scanner?.captureSession, previewLayer.session != captureSession {
-            previewLayer.session = captureSession
+        if let captureSession = scanner?.captureSession {
+            if previewLayer.session == nil {
+                previewLayer.session = captureSession
+            } else if previewLayer.session !== captureSession {
+                previewLayer.session = captureSession
+            }
         }
 
         if previewLayer.frame != view.bounds {
