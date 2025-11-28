@@ -46,7 +46,7 @@ Testing System:      XCTest ✅
 
 ### 7. Configure
 - **General**: iOS Deployment Target → **16.0**
-- **Signing & Capabilities**: 
+- **Signing & Capabilities**:
   - Select Team
   - Add: Sign in with Apple, Push Notifications, Camera
 
