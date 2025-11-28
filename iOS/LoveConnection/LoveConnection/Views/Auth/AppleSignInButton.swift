@@ -9,15 +9,24 @@ struct AppleSignInButton: View {
     var body: some View {
         VStack {
             SignInWithAppleButton(.signIn) { request in
-                print("🔵 Apple Sign In button tapped")
+                print("🔵🔵🔵 Apple Sign In button tapped - request handler called")
                 request.requestedScopes = [.fullName, .email]
+                print("🔵 Requested scopes set: fullName, email")
             } onCompletion: { result in
-                print("🔵 Apple Sign In completion handler called")
+                print("🔵🔵🔵 Apple Sign In completion handler called with result: \(result)")
                 handleSignInResult(result)
             }
             .frame(height: 50)
             .frame(maxWidth: .infinity, alignment: .center)
             .cornerRadius(8)
+            .onTapGesture {
+                print("🔵🔵🔵 Apple Sign In button TAP GESTURE detected")
+            }
+            .simultaneousGesture(
+                TapGesture().onEnded {
+                    print("🔵🔵🔵 Apple Sign In button SIMULTANEOUS gesture detected")
+                }
+            )
 
             if let errorMessage = errorMessage {
                 Text(errorMessage)
