@@ -216,9 +216,15 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
     func stopScanning() {
         print("📷 QRScanner: stopScanning() called")
         
-        DispatchQueue.main.async { [weak self] in
+        let semaphore = DispatchSemaphore(value: 0)
+        
+        DispatchQueue.main.sync {
+            print("📷 QRScanner: Disconnecting preview layer on main thread")
             NotificationCenter.default.post(name: NSNotification.Name("CaptureSessionStopping"), object: nil)
+            semaphore.signal()
         }
+        
+        semaphore.wait()
         
         sessionQueue.async { [weak self] in
             guard let self = self else {
@@ -236,15 +242,8 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
             if captureSession.isRunning {
                 print("📷 QRScanner: Stopping session...")
                 captureSession.stopRunning()
-                
-                var attempts = 0
-                while captureSession.isRunning && attempts < 10 {
-                    Thread.sleep(forTimeInterval: 0.1)
-                    attempts += 1
-                }
-                
                 self.isSessionRunning = false
-                print("✅ QRScanner: Session stopped, isRunning: \(captureSession.isRunning) after \(attempts) attempts")
+                print("✅ QRScanner: Session stop requested")
             } else {
                 print("⚠️ QRScanner: Session was not running")
                 self.isSessionRunning = false
@@ -281,6 +280,7 @@ class PreviewViewController: UIViewController {
     private var previewLayer: AVCaptureVideoPreviewLayer?
     private var readyObserver: NSObjectProtocol?
     private var stoppingObserver: NSObjectProtocol?
+    private var isDisconnected = false
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -290,6 +290,7 @@ class PreviewViewController: UIViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        isDisconnected = false
         updatePreviewLayer()
     }
 
@@ -332,9 +333,10 @@ class PreviewViewController: UIViewController {
     }
     
     private func disconnectPreviewLayer() {
-        guard let previewLayer = previewLayer else { return }
+        guard !isDisconnected, let previewLayer = previewLayer else { return }
         print("📷 PreviewViewController: Disconnecting preview layer from session")
         previewLayer.session = nil
+        isDisconnected = true
     }
 
     private func setupPreviewLayer() {
