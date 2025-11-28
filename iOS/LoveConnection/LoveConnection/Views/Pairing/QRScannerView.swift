@@ -119,31 +119,35 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
         }
 
         let captureSession = AVCaptureSession()
+        
+        guard captureSession.canSetSessionPreset(.high) else {
+            print("Cannot set session preset")
+            return
+        }
+        
         captureSession.beginConfiguration()
         captureSession.sessionPreset = .high
 
-        if captureSession.canAddInput(videoInput) {
-            captureSession.addInput(videoInput)
-        } else {
+        guard captureSession.canAddInput(videoInput) else {
             print("Cannot add video input")
             captureSession.commitConfiguration()
             return
         }
+        captureSession.addInput(videoInput)
 
         let metadataOutput = AVCaptureMetadataOutput()
 
-        if captureSession.canAddOutput(metadataOutput) {
-            captureSession.addOutput(metadataOutput)
-
-            metadataOutput.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
-            metadataOutput.metadataObjectTypes = [.qr]
-        } else {
+        guard captureSession.canAddOutput(metadataOutput) else {
             print("Cannot add metadata output")
             captureSession.commitConfiguration()
             return
         }
+        captureSession.addOutput(metadataOutput)
 
         captureSession.commitConfiguration()
+
+        metadataOutput.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
+        metadataOutput.metadataObjectTypes = [.qr]
 
         self.captureSession = captureSession
 
@@ -151,8 +155,15 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
             NotificationCenter.default.post(name: NSNotification.Name("CaptureSessionReady"), object: self?.captureSession)
         }
 
-        captureSession.startRunning()
-        isSessionRunning = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            guard let self = self, let session = self.captureSession else { return }
+            self.sessionQueue.async {
+                if !session.isRunning {
+                    session.startRunning()
+                    self.isSessionRunning = true
+                }
+            }
+        }
     }
 
     func stopScanning() {
@@ -247,8 +258,9 @@ class PreviewViewController: UIViewController {
             }
         }
 
-        if previewLayer.frame != view.bounds {
-            previewLayer.frame = view.bounds
+        let bounds = view.bounds
+        if previewLayer.frame != bounds && !bounds.isEmpty {
+            previewLayer.frame = bounds
         }
     }
 }
