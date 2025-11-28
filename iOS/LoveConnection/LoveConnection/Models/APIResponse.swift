@@ -1,11 +1,5 @@
-//
-//  APIResponse.swift
-//  LoveConnection
-//
-//  Created on 2025-01-27.
-//
-
 import Foundation
+import Combine
 
 struct APIResponse<T: Codable>: Codable {
     let success: Bool
