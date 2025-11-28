@@ -62,7 +62,26 @@ class APIService {
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .iso8601
             return try decoder.decode(T.self, from: data)
+        } catch let decodingError as DecodingError {
+            let errorDescription: String
+            switch decodingError {
+            case .typeMismatch(let type, let context):
+                errorDescription = "Type mismatch for \(type) at path: \(context.codingPath.map { $0.stringValue }.joined(separator: "."))"
+            case .valueNotFound(let type, let context):
+                errorDescription = "Value not found for \(type) at path: \(context.codingPath.map { $0.stringValue }.joined(separator: "."))"
+            case .keyNotFound(let key, let context):
+                errorDescription = "Key '\(key.stringValue)' not found at path: \(context.codingPath.map { $0.stringValue }.joined(separator: "."))"
+            case .dataCorrupted(let context):
+                errorDescription = "Data corrupted at path: \(context.codingPath.map { $0.stringValue }.joined(separator: ".")) - \(context.debugDescription)"
+            @unknown default:
+                errorDescription = "Decoding error: \(decodingError.localizedDescription)"
+            }
+            print("Decoding error details: \(errorDescription)")
+            print("Response data: \(String(data: data, encoding: .utf8) ?? "Unable to decode")")
+            throw APIError.decodingError(errorDescription)
         } catch {
+            print("Unexpected error: \(error)")
+            print("Response data: \(String(data: data, encoding: .utf8) ?? "Unable to decode")")
             throw APIError.decodingError(error.localizedDescription)
         }
     }
