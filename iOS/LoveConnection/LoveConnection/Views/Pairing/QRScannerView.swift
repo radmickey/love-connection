@@ -145,8 +145,10 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
 
         captureSession.commitConfiguration()
 
+        self.captureSession = captureSession
+
         DispatchQueue.main.async { [weak self] in
-            self?.captureSession = captureSession
+            NotificationCenter.default.post(name: NSNotification.Name("CaptureSessionReady"), object: self?.captureSession)
         }
 
         captureSession.startRunning()
@@ -190,10 +192,17 @@ struct QRScannerPreview: UIViewControllerRepresentable {
 class PreviewViewController: UIViewController {
     var scanner: QRScanner?
     private var previewLayer: AVCaptureVideoPreviewLayer?
+    private var observer: NSObjectProtocol?
 
     override func viewDidLoad() {
         super.viewDidLoad()
         setupPreviewLayer()
+        setupObserver()
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        updatePreviewLayer()
     }
 
     override func viewDidLayoutSubviews() {
@@ -201,11 +210,28 @@ class PreviewViewController: UIViewController {
         previewLayer?.frame = view.bounds
     }
 
+    deinit {
+        if let observer = observer {
+            NotificationCenter.default.removeObserver(observer)
+        }
+    }
+
+    private func setupObserver() {
+        observer = NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("CaptureSessionReady"),
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            self?.updatePreviewLayer()
+        }
+    }
+
     private func setupPreviewLayer() {
         guard previewLayer == nil else { return }
 
         let layer = AVCaptureVideoPreviewLayer()
         layer.videoGravity = .resizeAspectFill
+        view.backgroundColor = .black
         view.layer.addSublayer(layer)
         previewLayer = layer
 
@@ -216,9 +242,7 @@ class PreviewViewController: UIViewController {
         guard let previewLayer = previewLayer else { return }
 
         if let captureSession = scanner?.captureSession {
-            if previewLayer.session == nil {
-                previewLayer.session = captureSession
-            } else if previewLayer.session !== captureSession {
+            if previewLayer.session == nil || previewLayer.session !== captureSession {
                 previewLayer.session = captureSession
             }
         }
