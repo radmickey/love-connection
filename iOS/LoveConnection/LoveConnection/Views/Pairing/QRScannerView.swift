@@ -80,7 +80,7 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
 
     func startScanning() {
         print("📷 QRScanner: startScanning() called")
-        
+
         guard captureSession == nil else {
             print("📷 QRScanner: Session already exists, checking if running...")
             if !isSessionRunning {
@@ -112,7 +112,7 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
             } else {
                 print("❌ QRScanner: Camera access denied")
             }
-            
+
             guard granted else {
                 DispatchQueue.main.async {
                     print("❌ QRScanner: Camera access denied")
@@ -129,7 +129,7 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
 
     private func setupCaptureSession() {
         print("📷 QRScanner: setupCaptureSession() started")
-        
+
         guard let videoCaptureDevice = AVCaptureDevice.default(for: .video) else {
             print("❌ QRScanner: No video capture device available")
             return
@@ -220,14 +220,14 @@ class QRScanner: NSObject, ObservableObject, AVCaptureMetadataOutputObjectsDeleg
                 print("❌ QRScanner: Self is nil in stopScanning")
                 return
             }
-            
+
             guard let captureSession = self.captureSession else {
                 print("⚠️ QRScanner: No capture session to stop")
                 return
             }
-            
+
             print("📷 QRScanner: Checking session state... isRunning: \(captureSession.isRunning)")
-            
+
             if captureSession.isRunning {
                 print("📷 QRScanner: Stopping session...")
                 captureSession.stopRunning()

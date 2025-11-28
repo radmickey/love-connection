@@ -7,6 +7,7 @@ class AppState: ObservableObject {
     @Published var currentUser: User?
     @Published var currentPair: Pair?
     @Published var isLoading: Bool = false
+    @Published var isCheckingAuth: Bool = true
     @Published var errorMessage: String?
 
     private let authService = AuthService.shared
@@ -17,6 +18,7 @@ class AppState: ObservableObject {
     }
 
     func checkAuthenticationStatus() {
+        isCheckingAuth = true
         Task {
             if KeychainHelper.shared.getToken() != nil {
                 do {
@@ -29,7 +31,10 @@ class AppState: ObservableObject {
                     KeychainHelper.shared.deleteToken()
                     self.isAuthenticated = false
                 }
+            } else {
+                self.isAuthenticated = false
             }
+            self.isCheckingAuth = false
         }
     }
 

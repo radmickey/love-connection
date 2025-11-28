@@ -12,7 +12,13 @@ struct ContentView: View {
 
     var body: some View {
         Group {
-            if appState.isAuthenticated {
+            if appState.isCheckingAuth {
+                ZStack {
+                    Color(.systemBackground)
+                        .ignoresSafeArea()
+                    ProgressView()
+                }
+            } else if appState.isAuthenticated {
                 if appState.currentPair != nil {
                     MainTabView()
                 } else {
@@ -21,9 +27,6 @@ struct ContentView: View {
             } else {
                 LoginView()
             }
-        }
-        .task {
-            appState.checkAuthenticationStatus()
         }
     }
 }
