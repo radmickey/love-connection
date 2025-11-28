@@ -155,4 +155,3 @@ func (h *LoveHandler) GetHistory(c *gin.Context) {
 		"data":    events,
 	})
 }
-

@@ -2,13 +2,13 @@ package websocket
 
 import (
 	"encoding/json"
-	"love-connection/backend/internal/models"
 	"log"
+	"love-connection/backend/internal/models"
 	"net/http"
 	"sync"
 
-	"github.com/gorilla/websocket"
 	"github.com/google/uuid"
+	"github.com/gorilla/websocket"
 )
 
 var upgrader = websocket.Upgrader{
@@ -149,4 +149,3 @@ func (c *Client) writePump() {
 		}
 	}
 }
-
