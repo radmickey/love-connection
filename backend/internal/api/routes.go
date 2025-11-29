@@ -48,7 +48,8 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, hub *websocket.Hub) {
 		}
 
 		// Создаем HTML страницу, которая откроет deep link
-		deepLink := "loveconnection://add?username=" + url.QueryEscape(username)
+		// Используем Universal Link (HTTPS) вместо custom URL scheme
+		universalLink := "https://love-couple-connect.duckdns.org/add?username=" + url.QueryEscape(username)
 		html := `<!DOCTYPE html>
 <html>
 <head>

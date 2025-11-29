@@ -21,7 +21,7 @@ class AppState: ObservableObject {
 
     func checkAuthenticationStatus() {
         isCheckingAuth = true
-        Task {
+        Task { @MainActor in
             if KeychainHelper.shared.getToken() != nil {
                 do {
                     let user = try await apiService.getCurrentUser()
@@ -47,15 +47,20 @@ class AppState: ObservableObject {
 
     func loadCurrentPair() async {
         do {
-            self.currentPair = try await apiService.getCurrentPair()
-            if self.currentPair != nil {
-                WebSocketService.shared.connect()
-            } else {
-                WebSocketService.shared.disconnect()
+            let pair = try await apiService.getCurrentPair()
+            await MainActor.run {
+                self.currentPair = pair
+                if self.currentPair != nil {
+                    WebSocketService.shared.connect()
+                } else {
+                    WebSocketService.shared.disconnect()
+                }
             }
         } catch {
-            self.currentPair = nil
-            WebSocketService.shared.disconnect()
+            await MainActor.run {
+                self.currentPair = nil
+                WebSocketService.shared.disconnect()
+            }
         }
     }
 
