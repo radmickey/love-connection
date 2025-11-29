@@ -1,6 +1,9 @@
 import SwiftUI
+import Foundation
 
 struct UsernameInputView: View {
+    // Username validation: starts with letter, only alphanumeric, max 12 chars
+    private let usernamePattern = "^[a-zA-Z][a-zA-Z0-9]*$"
     @EnvironmentObject var appState: AppState
     @State private var username = ""
     @State private var errorMessage: String?
@@ -30,9 +33,20 @@ struct UsernameInputView: View {
                         .textFieldStyle(.roundedBorder)
                         .autocapitalization(.none)
                         .autocorrectionDisabled()
+                        .textInputAutocapitalization(.never)
+                        .onChange(of: username) { newValue in
+                            // Remove spaces as user types
+                            if newValue.contains(" ") {
+                                username = newValue.replacingOccurrences(of: " ", with: "")
+                            }
+                            // Limit to 12 characters
+                            if newValue.count > 12 {
+                                username = String(newValue.prefix(12))
+                            }
+                        }
                         .submitLabel(.done)
                         .onSubmit {
-                            if !username.isEmpty {
+                            if !username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                                 saveUsername()
                             }
                         }
@@ -47,7 +61,7 @@ struct UsernameInputView: View {
                         }
                     }
                     .buttonStyle(.borderedProminent)
-                    .disabled(isLoading || username.isEmpty)
+                    .disabled(isLoading || username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
                 .padding(.horizontal)
                 .frame(maxWidth: 375)
@@ -66,24 +80,50 @@ struct UsernameInputView: View {
         }
     }
 
+    private func isValidUsername(_ username: String) -> Bool {
+        // Check if username matches pattern: starts with letter, only alphanumeric
+        let regex = try? NSRegularExpression(pattern: usernamePattern, options: [])
+        let range = NSRange(location: 0, length: username.utf16.count)
+        return regex?.firstMatch(in: username, options: [], range: range) != nil
+    }
+
     private func saveUsername() {
-        guard !username.isEmpty else {
+        let trimmedUsername = username.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !trimmedUsername.isEmpty else {
             errorMessage = "Username is required"
             showError = true
             return
         }
 
-        guard username.count >= 3 else {
+        // Check for spaces
+        guard !trimmedUsername.contains(" ") else {
+            errorMessage = "Username cannot contain spaces"
+            showError = true
+            return
+        }
+
+        guard trimmedUsername.count >= 3 else {
             errorMessage = "Username must be at least 3 characters"
             showError = true
             return
         }
 
-        guard username.count <= 50 else {
-            errorMessage = "Username must be less than 50 characters"
+        guard trimmedUsername.count <= 12 else {
+            errorMessage = "Username must be 12 characters or less"
             showError = true
             return
         }
+
+        // Validate format: starts with letter, only alphanumeric
+        guard isValidUsername(trimmedUsername) else {
+            errorMessage = "Username must start with a letter and contain only letters and numbers"
+            showError = true
+            return
+        }
+
+        // Use trimmed username
+        username = trimmedUsername
 
         isLoading = true
         errorMessage = nil

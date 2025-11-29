@@ -32,10 +32,8 @@ struct ContentView: View {
                                 }
                             }
                         }
-                } else if appState.currentPair != nil {
-                    MainTabView()
                 } else {
-                    PairingView()
+                    MainTabView()
                         .sheet(isPresented: $showingUsernameSearch) {
                             if let username = usernameToAdd {
                                 UsernameSearchViewWithUsername(username: username)

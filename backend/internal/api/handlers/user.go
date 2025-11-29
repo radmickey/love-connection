@@ -5,6 +5,7 @@ import (
 	"love-connection/backend/internal/models"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -70,12 +71,49 @@ func (h *UserHandler) UpdateMe(c *gin.Context) {
 	uid := userID.(uuid.UUID)
 
 	var req struct {
-		Username string `json:"username" binding:"required,min=1,max=50"`
+		Username string `json:"username" binding:"required,min=1,max=12"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
+	}
+
+	// Trim whitespace and validate
+	req.Username = strings.TrimSpace(req.Username)
+	if req.Username == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Username cannot be empty or only whitespace"})
+		return
+	}
+
+	// Check for spaces
+	if strings.Contains(req.Username, " ") {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Username cannot contain spaces"})
+		return
+	}
+
+	if len(req.Username) < 3 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Username must be at least 3 characters"})
+		return
+	}
+
+	if len(req.Username) > 12 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Username must be 12 characters or less"})
+		return
+	}
+
+	// Validate format: starts with letter, only alphanumeric
+	// Pattern: ^[a-zA-Z][a-zA-Z0-9]*$
+	if len(req.Username) == 0 || !((req.Username[0] >= 'a' && req.Username[0] <= 'z') || (req.Username[0] >= 'A' && req.Username[0] <= 'Z')) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Username must start with a letter"})
+		return
+	}
+
+	for _, char := range req.Username {
+		if !((char >= 'a' && char <= 'z') || (char >= 'A' && char <= 'Z') || (char >= '0' && char <= '9')) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Username can only contain letters and numbers"})
+			return
+		}
 	}
 
 	// Проверяем, не занят ли username другим пользователем
@@ -121,7 +159,7 @@ func (h *UserHandler) UpdateMe(c *gin.Context) {
 }
 
 func (h *UserHandler) SearchUser(c *gin.Context) {
-	username := c.Query("username")
+	username := strings.TrimSpace(c.Query("username"))
 	if username == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Username parameter is required"})
 		return

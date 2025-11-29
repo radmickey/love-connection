@@ -5,29 +5,32 @@ struct MainTabView: View {
 
     var body: some View {
         TabView {
-            HeartButtonView()
-                .tabItem {
-                    Label("Heart", systemImage: "heart.fill")
-                }
+            if appState.currentPair != nil {
+                HeartButtonView()
+                    .tabItem {
+                        Label("Heart", systemImage: "heart.fill")
+                    }
 
-            HistoryView()
-                .tabItem {
-                    Label("History", systemImage: "clock.fill")
-                }
+                HistoryView()
+                    .tabItem {
+                        Label("History", systemImage: "clock.fill")
+                    }
 
-            StatsView()
-                .tabItem {
-                    Label("Stats", systemImage: "chart.bar.fill")
-                }
+                StatsView()
+                    .tabItem {
+                        Label("Stats", systemImage: "chart.bar.fill")
+                    }
+            } else {
+                PairingView()
+                    .tabItem {
+                        Label("Pairing", systemImage: "heart.fill")
+                    }
+            }
 
             ProfileView()
+                .environmentObject(appState)
                 .tabItem {
                     Label("Profile", systemImage: "person.circle.fill")
-                }
-
-            SettingsView()
-                .tabItem {
-                    Label("Settings", systemImage: "gearshape.fill")
                 }
         }
     }
