@@ -2,156 +2,185 @@ import Foundation
 
 struct ErrorFormatter {
     static func userFriendlyMessage(from error: Error) -> String {
+        // First, try to cast as APIError
         if let apiError = error as? APIError {
             return formatAPIError(apiError)
         }
 
+        // Also check if the error description contains APIError patterns
         let errorString = error.localizedDescription
         let lowercased = errorString.lowercased()
 
-        // Database errors - show generic message
-        if lowercased.contains("database") ||
-           lowercased.contains("pq:") ||
-           lowercased.contains("sql") ||
-           lowercased.contains("does not exist") ||
-           lowercased.contains("connection refused") ||
-           lowercased.contains("connection timeout") {
+        // If it looks like an API error but wasn't caught above, handle it
+        if lowercased.contains("invalid response") ||
+           lowercased.contains("invalid url") ||
+           lowercased.contains("http error") ||
+           lowercased.contains("decoding error") {
             return "Something went wrong, please try again later"
         }
 
-        // Server errors - show generic message
-        if lowercased.contains("server error") ||
-           lowercased.contains("internal server error") ||
-           lowercased.contains("500") {
-            return "Something went wrong, please try again later"
+        // Only show specific messages for known user-facing errors
+        // Everything else gets a generic friendly message
+
+        // Username validation errors (user can fix these)
+        if lowercased.contains("username") && (lowercased.contains("already taken") || lowercased.contains("already exists") || lowercased.contains("duplicate")) {
+            return "This username is already taken"
         }
 
-        // User-friendly validation errors
-        if errorString.contains("Email") && errorString.contains("validation") {
+        if lowercased.contains("username") && lowercased.contains("validation") {
+            if lowercased.contains("at least") {
+                return "Username must be at least 3 characters"
+            }
+            if lowercased.contains("12") || lowercased.contains("maximum") {
+                return "Username must be 12 characters or less"
+            }
+            if lowercased.contains("letter") || lowercased.contains("alphanumeric") {
+                return "Username must start with a letter and contain only letters and numbers"
+            }
+            if lowercased.contains("space") {
+                return "Username cannot contain spaces"
+            }
+            return "Please enter a valid username"
+        }
+
+        // Email validation errors (user can fix these)
+        if lowercased.contains("email") && (lowercased.contains("already exists") || lowercased.contains("duplicate")) {
+            return "An account with this email already exists"
+        }
+
+        if lowercased.contains("email") && (lowercased.contains("validation") || lowercased.contains("invalid")) {
             return "Please enter a valid email address"
         }
 
-        if errorString.contains("Password") && errorString.contains("validation") {
-            return "Password must be at least 6 characters long"
-        }
-
-        if errorString.contains("Username") && errorString.contains("validation") {
-            return "Username is required"
-        }
-
-        if errorString.contains("email") && errorString.contains("tag") {
-            return "Please enter a valid email address"
-        }
-
-        if errorString.contains("already exists") || errorString.contains("duplicate") {
-            if errorString.lowercased().contains("email") {
-                return "An account with this email already exists"
+        // Password validation errors (user can fix these)
+        if lowercased.contains("password") && lowercased.contains("validation") {
+            if lowercased.contains("at least") || lowercased.contains("6") {
+                return "Password must be at least 6 characters long"
             }
-            if errorString.lowercased().contains("username") {
-                return "This username is already taken"
-            }
-            return "This information is already in use"
+            return "Please enter a valid password"
         }
 
-        if errorString.contains("invalid credentials") ||
-           errorString.contains("unauthorized") ||
-           lowercased.contains("invalid email or password") ||
-           lowercased.contains("invalid email") ||
-           lowercased.contains("invalid password") {
+        // Authentication errors (user-facing)
+        if lowercased.contains("invalid credentials") ||
+           lowercased.contains("unauthorized") ||
+           (lowercased.contains("invalid") && (lowercased.contains("email") || lowercased.contains("password"))) {
             return "Invalid email or password"
         }
 
-        // Network errors
-        if errorString.contains("network") ||
-           errorString.contains("connection") ||
+        // Network connectivity errors (user can check their connection)
+        if lowercased.contains("network") ||
+           lowercased.contains("connection") ||
            lowercased.contains("could not connect") ||
-           lowercased.contains("hostname could not be found") {
+           lowercased.contains("hostname could not be found") ||
+           lowercased.contains("no internet") {
             return "Unable to connect. Please check your internet connection"
         }
 
-        if errorString.contains("timeout") {
+        if lowercased.contains("timeout") {
             return "Request timed out. Please try again"
         }
 
-        // For any other technical errors, show generic message
+        // For ALL other errors (database, server, technical, unknown) - show generic friendly message
         return "Something went wrong, please try again later"
     }
 
     private static func formatAPIError(_ error: APIError) -> String {
         switch error {
         case .invalidURL:
-            return "Invalid server address"
+            return "Unable to connect. Please check your internet connection"
         case .invalidResponse:
-            return "Unexpected response from server"
+            return "Something went wrong, please try again later"
         case .httpError(let code):
             switch code {
             case 400:
+                // Check if it's a validation error we can show specifically
                 return "Invalid request. Please check your input"
             case 401:
                 return "Authentication failed"
             case 403:
                 return "Access denied"
             case 404:
-                return "Resource not found"
+                return "Something went wrong, please try again later"
             case 500...599:
-                return "Server error. Please try again later"
+                return "Something went wrong, please try again later"
             default:
-                return "Request failed (Error \(code))"
-            }
-        case .serverError(let message):
-            let lowercased = message.lowercased()
-            // Check if it's a database or internal error
-            if lowercased.contains("database") ||
-               lowercased.contains("pq:") ||
-               lowercased.contains("sql") ||
-               lowercased.contains("does not exist") ||
-               lowercased.contains("internal") ||
-               lowercased.contains("server error") {
                 return "Something went wrong, please try again later"
             }
-            return userFriendlyMessage(from: message)
+        case .serverError(let message):
+            // Always use userFriendlyMessage which will return friendly message for all non-user errors
+            let friendlyMessage = userFriendlyMessage(from: message)
+            // Ensure we never return technical error details
+            if friendlyMessage == message && !isUserFacingError(message) {
+                return "Something went wrong, please try again later"
+            }
+            return friendlyMessage
         case .decodingError:
-            return "Unable to process server response"
+            return "Something went wrong, please try again later"
         }
     }
 
     private static func userFriendlyMessage(from message: String) -> String {
         let lowercased = message.lowercased()
 
-        // Database errors - show generic message
-        if lowercased.contains("database") ||
-           lowercased.contains("pq:") ||
-           lowercased.contains("sql") ||
-           lowercased.contains("does not exist") ||
-           lowercased.contains("internal") ||
-           lowercased.contains("server error") {
-            return "Something went wrong, please try again later"
-        }
+        // Only show specific messages for known user-facing errors
+        // Everything else gets a generic friendly message
 
-        if lowercased.contains("email") && (lowercased.contains("validation") || lowercased.contains("failed")) {
-            return "Please enter a valid email address"
-        }
-
-        if lowercased.contains("password") && lowercased.contains("validation") {
-            return "Password must be at least 6 characters long"
+        // Username errors (user can fix these)
+        if lowercased.contains("username") && (lowercased.contains("already taken") || lowercased.contains("already exists") || lowercased.contains("duplicate")) {
+            return "This username is already taken"
         }
 
         if lowercased.contains("username") && lowercased.contains("validation") {
-            return "Username is required"
+            if lowercased.contains("at least") {
+                return "Username must be at least 3 characters"
+            }
+            if lowercased.contains("12") || lowercased.contains("maximum") {
+                return "Username must be 12 characters or less"
+            }
+            if lowercased.contains("letter") || lowercased.contains("alphanumeric") {
+                return "Username must start with a letter and contain only letters and numbers"
+            }
+            if lowercased.contains("space") {
+                return "Username cannot contain spaces"
+            }
+            return "Please enter a valid username"
         }
 
-        if lowercased.contains("already exists") || lowercased.contains("duplicate") {
-            if lowercased.contains("email") {
-                return "An account with this email already exists"
-            }
-            if lowercased.contains("username") {
-                return "This username is already taken"
-            }
-            return "This information is already in use"
+        // Email errors (user can fix these)
+        if lowercased.contains("email") && (lowercased.contains("already exists") || lowercased.contains("duplicate")) {
+            return "An account with this email already exists"
         }
 
-        // For any other technical errors, show generic message
+        if lowercased.contains("email") && (lowercased.contains("validation") || lowercased.contains("invalid")) {
+            return "Please enter a valid email address"
+        }
+
+        // Password errors (user can fix these)
+        if lowercased.contains("password") && lowercased.contains("validation") {
+            if lowercased.contains("at least") || lowercased.contains("6") {
+                return "Password must be at least 6 characters long"
+            }
+            return "Please enter a valid password"
+        }
+
+        // Authentication errors (user-facing)
+        if lowercased.contains("invalid credentials") ||
+           lowercased.contains("unauthorized") ||
+           (lowercased.contains("invalid") && (lowercased.contains("email") || lowercased.contains("password"))) {
+            return "Invalid email or password"
+        }
+
+        // For ALL other errors (database, server, technical, unknown) - show generic friendly message
         return "Something went wrong, please try again later"
+    }
+
+    private static func isUserFacingError(_ message: String) -> Bool {
+        let lowercased = message.lowercased()
+        // Check if this is a known user-facing error
+        return (lowercased.contains("username") && (lowercased.contains("already taken") || lowercased.contains("already exists") || lowercased.contains("duplicate") || lowercased.contains("validation"))) ||
+               (lowercased.contains("email") && (lowercased.contains("already exists") || lowercased.contains("duplicate") || lowercased.contains("validation") || lowercased.contains("invalid"))) ||
+               (lowercased.contains("password") && lowercased.contains("validation")) ||
+               (lowercased.contains("invalid credentials") || lowercased.contains("unauthorized"))
     }
 }
 
