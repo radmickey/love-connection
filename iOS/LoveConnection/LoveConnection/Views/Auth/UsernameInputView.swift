@@ -12,61 +12,146 @@ struct UsernameInputView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 24) {
-                Spacer()
+            ZStack {
+                // Gradient background
+                LinearGradient(
+                    colors: [
+                        Color(red: 1.0, green: 0.9, blue: 0.95),
+                        Color(red: 1.0, green: 0.95, blue: 0.98),
+                        Color.white
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
 
-                Image(systemName: "person.circle.fill")
-                    .font(.system(size: 80))
-                    .foregroundColor(.blue)
+                VStack(spacing: 32) {
+                    Spacer()
 
-                Text("Choose Your Username")
-                    .font(.title)
-                    .fontWeight(.bold)
+                    // Header section
+                    VStack(spacing: 20) {
+                        ZStack {
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [.blue.opacity(0.2), .purple.opacity(0.1)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .frame(width: 120, height: 120)
 
-                Text("Pick a unique username that your partner can use to find you")
-                    .multilineTextAlignment(.center)
-                    .foregroundColor(.secondary)
-                    .padding(.horizontal)
-
-                VStack(spacing: 16) {
-                    TextField("Username", text: $username)
-                        .textFieldStyle(.roundedBorder)
-                        .autocapitalization(.none)
-                        .autocorrectionDisabled()
-                        .textInputAutocapitalization(.never)
-                        .onChange(of: username) { newValue in
-                            // Remove spaces as user types
-                            if newValue.contains(" ") {
-                                username = newValue.replacingOccurrences(of: " ", with: "")
-                            }
-                            // Limit to 12 characters
-                            if newValue.count > 12 {
-                                username = String(newValue.prefix(12))
-                            }
+                            Image(systemName: "person.circle.fill")
+                                .font(.system(size: 60))
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [.blue, .purple],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
                         }
-                        .submitLabel(.done)
-                        .onSubmit {
-                            if !username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                                saveUsername()
-                            }
-                        }
 
-                    Button(action: saveUsername) {
-                        if isLoading {
-                            ProgressView()
-                                .frame(maxWidth: .infinity)
-                        } else {
-                            Text("Continue")
-                                .frame(maxWidth: .infinity)
+                        VStack(spacing: 8) {
+                            Text("Choose Your Username")
+                                .font(.system(size: 28, weight: .bold, design: .rounded))
+
+                            Text("Pick a unique username that your partner can use to find you")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 32)
                         }
                     }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(isLoading || username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                }
-                .padding(.horizontal)
-                .frame(maxWidth: 375)
 
-                Spacer()
+                    // Input section
+                    VStack(spacing: 20) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Username")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.secondary)
+
+                            TextField("Enter username", text: $username)
+                                .textFieldStyle(.plain)
+                                .font(.system(size: 18))
+                                .autocapitalization(.none)
+                                .autocorrectionDisabled()
+                                .textInputAutocapitalization(.never)
+                                .padding(16)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .fill(.ultraThinMaterial)
+                                        .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
+                                )
+                                .onChange(of: username) { newValue in
+                                    // Remove spaces as user types
+                                    if newValue.contains(" ") {
+                                        username = newValue.replacingOccurrences(of: " ", with: "")
+                                    }
+                                    // Limit to 12 characters
+                                    if newValue.count > 12 {
+                                        username = String(newValue.prefix(12))
+                                    }
+                                }
+                                .submitLabel(.done)
+                                .onSubmit {
+                                    if !username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                        saveUsername()
+                                    }
+                                }
+
+                            // Rules hint
+                            VStack(alignment: .leading, spacing: 4) {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "info.circle.fill")
+                                        .font(.caption2)
+                                        .foregroundColor(.secondary)
+                                    Text("3-12 characters, letters and numbers only")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+
+                                Text("\(username.count)/12")
+                                    .font(.caption2)
+                                    .foregroundColor(username.count > 12 ? .red : .secondary)
+                                    .frame(maxWidth: .infinity, alignment: .trailing)
+                            }
+                            .padding(.horizontal, 4)
+                        }
+
+                        Button(action: saveUsername) {
+                            HStack {
+                                if isLoading {
+                                    ProgressView()
+                                        .progressViewStyle(.circular)
+                                        .tint(.white)
+                                } else {
+                                    Text("Continue")
+                                        .font(.system(size: 18, weight: .semibold))
+                                }
+                            }
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 56)
+                            .background(
+                                LinearGradient(
+                                    colors: username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isLoading ? [.gray.opacity(0.3)] : [.blue, .purple],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .foregroundColor(.white)
+                            .cornerRadius(16)
+                            .shadow(color: username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? .clear : .blue.opacity(0.3), radius: 10, x: 0, y: 5)
+                        }
+                        .disabled(isLoading || username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        .animation(.easeInOut(duration: 0.2), value: username.isEmpty)
+                    }
+                    .padding(.horizontal, 32)
+                    .frame(maxWidth: 400)
+
+                    Spacer()
+                }
             }
             .navigationTitle("Setup")
             .navigationBarTitleDisplayMode(.inline)

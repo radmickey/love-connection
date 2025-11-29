@@ -70,7 +70,7 @@ struct QRScannerView: View {
                 scanner.stopScanning()
                 dismiss()
             } catch {
-                errorMessage = error.localizedDescription
+                errorMessage = ErrorFormatter.userFriendlyMessage(from: error)
             }
         }
     }

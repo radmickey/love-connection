@@ -7,7 +7,26 @@ struct ErrorFormatter {
         }
 
         let errorString = error.localizedDescription
+        let lowercased = errorString.lowercased()
 
+        // Database errors - show generic message
+        if lowercased.contains("database") ||
+           lowercased.contains("pq:") ||
+           lowercased.contains("sql") ||
+           lowercased.contains("does not exist") ||
+           lowercased.contains("connection refused") ||
+           lowercased.contains("connection timeout") {
+            return "Something went wrong, please try again later"
+        }
+
+        // Server errors - show generic message
+        if lowercased.contains("server error") ||
+           lowercased.contains("internal server error") ||
+           lowercased.contains("500") {
+            return "Something went wrong, please try again later"
+        }
+
+        // User-friendly validation errors
         if errorString.contains("Email") && errorString.contains("validation") {
             return "Please enter a valid email address"
         }
@@ -36,13 +55,17 @@ struct ErrorFormatter {
 
         if errorString.contains("invalid credentials") ||
            errorString.contains("unauthorized") ||
-           errorString.lowercased().contains("invalid email or password") ||
-           errorString.lowercased().contains("invalid email") ||
-           errorString.lowercased().contains("invalid password") {
+           lowercased.contains("invalid email or password") ||
+           lowercased.contains("invalid email") ||
+           lowercased.contains("invalid password") {
             return "Invalid email or password"
         }
 
-        if errorString.contains("network") || errorString.contains("connection") {
+        // Network errors
+        if errorString.contains("network") ||
+           errorString.contains("connection") ||
+           lowercased.contains("could not connect") ||
+           lowercased.contains("hostname could not be found") {
             return "Unable to connect. Please check your internet connection"
         }
 
@@ -50,7 +73,8 @@ struct ErrorFormatter {
             return "Request timed out. Please try again"
         }
 
-        return errorString
+        // For any other technical errors, show generic message
+        return "Something went wrong, please try again later"
     }
 
     private static func formatAPIError(_ error: APIError) -> String {
@@ -75,6 +99,16 @@ struct ErrorFormatter {
                 return "Request failed (Error \(code))"
             }
         case .serverError(let message):
+            let lowercased = message.lowercased()
+            // Check if it's a database or internal error
+            if lowercased.contains("database") ||
+               lowercased.contains("pq:") ||
+               lowercased.contains("sql") ||
+               lowercased.contains("does not exist") ||
+               lowercased.contains("internal") ||
+               lowercased.contains("server error") {
+                return "Something went wrong, please try again later"
+            }
             return userFriendlyMessage(from: message)
         case .decodingError:
             return "Unable to process server response"
@@ -83,6 +117,16 @@ struct ErrorFormatter {
 
     private static func userFriendlyMessage(from message: String) -> String {
         let lowercased = message.lowercased()
+
+        // Database errors - show generic message
+        if lowercased.contains("database") ||
+           lowercased.contains("pq:") ||
+           lowercased.contains("sql") ||
+           lowercased.contains("does not exist") ||
+           lowercased.contains("internal") ||
+           lowercased.contains("server error") {
+            return "Something went wrong, please try again later"
+        }
 
         if lowercased.contains("email") && (lowercased.contains("validation") || lowercased.contains("failed")) {
             return "Please enter a valid email address"
@@ -106,7 +150,8 @@ struct ErrorFormatter {
             return "This information is already in use"
         }
 
-        return message
+        // For any other technical errors, show generic message
+        return "Something went wrong, please try again later"
     }
 }
 

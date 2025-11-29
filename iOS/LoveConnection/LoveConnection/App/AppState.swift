@@ -60,7 +60,7 @@ class AppState: ObservableObject {
             self.currentPair = nil
             WebSocketService.shared.disconnect()
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = ErrorFormatter.userFriendlyMessage(from: error)
         }
     }
 

@@ -10,71 +10,191 @@ struct InviteLinkView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 24) {
-                if isLoading {
-                    ProgressView()
-                        .padding()
-                } else if let inviteLink = inviteLink, let username = username {
-                    VStack(spacing: 24) {
-                        Image(systemName: "link.circle.fill")
-                            .font(.system(size: 80))
-                            .foregroundColor(.blue)
+            ZStack {
+                // Gradient background
+                LinearGradient(
+                    colors: [
+                        Color(red: 1.0, green: 0.9, blue: 0.95),
+                        Color(red: 1.0, green: 0.95, blue: 0.98),
+                        Color.white
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
 
-                        Text("Your Invite Link")
-                            .font(.title2)
-                            .fontWeight(.semibold)
-
-                        Text("Share this link with your partner to connect")
-                            .multilineTextAlignment(.center)
-                            .foregroundColor(.secondary)
-                            .padding(.horizontal)
-
+                VStack(spacing: 32) {
+                    if isLoading {
                         VStack(spacing: 16) {
-                            Text(inviteLink)
-                                .font(.system(.body, design: .monospaced))
-                                .padding()
-                                .background(Color(.systemGray6))
-                                .cornerRadius(8)
-                                .padding(.horizontal)
-
-                            Button(action: {
-                                UIPasteboard.general.string = inviteLink
-                                showCopiedAlert = true
-                            }) {
-                                Label("Copy Link", systemImage: "doc.on.doc")
-                                    .frame(maxWidth: .infinity)
-                            }
-                            .buttonStyle(.borderedProminent)
-
-                            ShareLink(item: inviteLink) {
-                                Label("Share", systemImage: "square.and.arrow.up")
-                                    .frame(maxWidth: .infinity)
-                            }
-                            .buttonStyle(.bordered)
+                            ProgressView()
+                                .scaleEffect(1.2)
+                            Text("Generating link...")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
                         }
-                        .padding(.horizontal)
-                    }
-                } else if let errorMessage = errorMessage {
-                    VStack(spacing: 16) {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .font(.system(size: 60))
-                            .foregroundColor(.red)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else if let inviteLink = inviteLink, let username = username {
+                        ScrollView {
+                            VStack(spacing: 32) {
+                                Spacer()
+                                    .frame(height: 20)
 
-                        Text("Error")
-                            .font(.title2)
-                            .fontWeight(.semibold)
+                                // Header
+                                VStack(spacing: 16) {
+                                    ZStack {
+                                        Circle()
+                                            .fill(
+                                                LinearGradient(
+                                                    colors: [.pink.opacity(0.2), .red.opacity(0.1)],
+                                                    startPoint: .topLeading,
+                                                    endPoint: .bottomTrailing
+                                                )
+                                            )
+                                            .frame(width: 120, height: 120)
 
-                        Text(errorMessage)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal)
+                                        Image(systemName: "link.circle.fill")
+                                            .font(.system(size: 60))
+                                            .foregroundStyle(
+                                                LinearGradient(
+                                                    colors: [.pink, .red],
+                                                    startPoint: .topLeading,
+                                                    endPoint: .bottomTrailing
+                                                )
+                                            )
+                                    }
 
-                        Button("Retry") {
-                            loadInviteLink()
+                                    VStack(spacing: 8) {
+                                        Text("Your Invite Link")
+                                            .font(.system(size: 28, weight: .bold, design: .rounded))
+
+                                        Text("Share this link with your partner to connect")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                            .multilineTextAlignment(.center)
+                                            .padding(.horizontal, 32)
+                                    }
+                                }
+
+                                // Link card
+                                VStack(spacing: 20) {
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        Text("Invite Link")
+                                            .font(.subheadline)
+                                            .fontWeight(.semibold)
+                                            .foregroundColor(.secondary)
+                                            .textCase(.uppercase)
+                                            .tracking(0.5)
+
+                                        Text(inviteLink)
+                                            .font(.system(.body, design: .monospaced))
+                                            .foregroundColor(.primary)
+                                            .padding(16)
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 12)
+                                                    .fill(.ultraThinMaterial)
+                                            )
+                                    }
+
+                                    // Action buttons
+                                    VStack(spacing: 12) {
+                                        Button(action: {
+                                            UIPasteboard.general.string = inviteLink
+                                            showCopiedAlert = true
+                                        }) {
+                                            HStack {
+                                                Image(systemName: "doc.on.doc.fill")
+                                                Text("Copy Link")
+                                                    .font(.system(size: 18, weight: .semibold))
+                                            }
+                                            .frame(maxWidth: .infinity)
+                                            .frame(height: 56)
+                                            .background(
+                                                LinearGradient(
+                                                    colors: [.blue, .purple],
+                                                    startPoint: .leading,
+                                                    endPoint: .trailing
+                                                )
+                                            )
+                                            .foregroundColor(.white)
+                                            .cornerRadius(16)
+                                            .shadow(color: .blue.opacity(0.3), radius: 10, x: 0, y: 5)
+                                        }
+
+                                        ShareLink(item: inviteLink) {
+                                            HStack {
+                                                Image(systemName: "square.and.arrow.up.fill")
+                                                Text("Share")
+                                                    .font(.system(size: 18, weight: .semibold))
+                                            }
+                                            .frame(maxWidth: .infinity)
+                                            .frame(height: 56)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 16)
+                                                    .fill(.ultraThinMaterial)
+                                            )
+                                            .foregroundColor(.primary)
+                                        }
+                                    }
+                                }
+                                .padding(24)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .fill(.ultraThinMaterial)
+                                        .shadow(color: .black.opacity(0.1), radius: 15, x: 0, y: 5)
+                                )
+                                .padding(.horizontal, 24)
+
+                                Spacer()
+                                    .frame(height: 20)
+                            }
                         }
-                        .buttonStyle(.borderedProminent)
+                    } else if let errorMessage = errorMessage {
+                        VStack(spacing: 24) {
+                            ZStack {
+                                Circle()
+                                    .fill(.red.opacity(0.1))
+                                    .frame(width: 120, height: 120)
+
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .font(.system(size: 60))
+                                    .foregroundColor(.red)
+                            }
+
+                            VStack(spacing: 8) {
+                                Text("Error")
+                                    .font(.system(size: 24, weight: .bold, design: .rounded))
+
+                                Text(errorMessage)
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal, 32)
+                            }
+
+                            Button(action: loadInviteLink) {
+                                HStack {
+                                    Image(systemName: "arrow.clockwise")
+                                    Text("Retry")
+                                        .font(.system(size: 18, weight: .semibold))
+                                }
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 56)
+                                .background(
+                                    LinearGradient(
+                                        colors: [.blue, .purple],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                                .foregroundColor(.white)
+                                .cornerRadius(16)
+                                .shadow(color: .blue.opacity(0.3), radius: 10, x: 0, y: 5)
+                            }
+                            .padding(.horizontal, 24)
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
-                    .padding()
                 }
             }
             .navigationTitle("Invite Link")

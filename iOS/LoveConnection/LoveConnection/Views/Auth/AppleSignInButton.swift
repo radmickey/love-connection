@@ -95,7 +95,7 @@ struct AppleSignInButton: View {
                     }
                 } catch {
                     print("❌ Sign in error: \(error)")
-                    errorMessage = error.localizedDescription
+                    errorMessage = ErrorFormatter.userFriendlyMessage(from: error)
                     showError = true
                 }
             }
@@ -127,7 +127,7 @@ struct AppleSignInButton: View {
                     showError = true
                 default:
                     print("   Unknown authorization error")
-                    errorMessage = "Apple Sign In error: \(nsError.localizedDescription)"
+                    errorMessage = "Something went wrong, please try again later"
                     showError = true
                 }
             } else if nsError.domain == "AKAuthenticationError" {
@@ -141,11 +141,11 @@ struct AppleSignInButton: View {
                     #endif
                     showError = true
                 default:
-                    errorMessage = "Authentication error: \(nsError.localizedDescription)"
+                    errorMessage = "Something went wrong, please try again later"
                     showError = true
                 }
             } else {
-                errorMessage = "Error: \(error.localizedDescription)"
+                errorMessage = "Something went wrong, please try again later"
                 showError = true
             }
         }

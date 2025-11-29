@@ -13,82 +13,250 @@ struct ProfileView: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section("Profile Information") {
-                    if let user = appState.currentUser {
-                        HStack {
-                            Text("Username")
-                            Spacer()
-                            if isEditing {
-                                TextField("Username", text: $username)
-                                    .multilineTextAlignment(.trailing)
-                                    .textInputAutocapitalization(.never)
-                                    .autocorrectionDisabled()
-                                    .onChange(of: username) { newValue in
-                                        // Remove spaces as user types
-                                        if newValue.contains(" ") {
-                                            username = newValue.replacingOccurrences(of: " ", with: "")
+            ZStack {
+                // Gradient background
+                LinearGradient(
+                    colors: [
+                        Color(red: 1.0, green: 0.9, blue: 0.95),
+                        Color(red: 1.0, green: 0.95, blue: 0.98),
+                        Color.white
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: 24) {
+                        // Profile header
+                        if let user = appState.currentUser {
+                            VStack(spacing: 16) {
+                                ZStack {
+                                    Circle()
+                                        .fill(
+                                            LinearGradient(
+                                                colors: [.pink.opacity(0.2), .red.opacity(0.1)],
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            )
+                                        )
+                                        .frame(width: 120, height: 120)
+
+                                    Image(systemName: "person.circle.fill")
+                                        .font(.system(size: 70))
+                                        .foregroundStyle(
+                                            LinearGradient(
+                                                colors: [.pink, .red],
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            )
+                                        )
+                                }
+
+                                Text(user.username)
+                                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                            }
+                            .padding(.top, 20)
+                            .padding(.bottom, 8)
+                        }
+
+                        // Profile information card
+                        VStack(spacing: 0) {
+                            if let user = appState.currentUser {
+                                // Username section
+                                VStack(alignment: .leading, spacing: 12) {
+                                    Text("Username")
+                                        .font(.subheadline)
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(.secondary)
+                                        .textCase(.uppercase)
+                                        .tracking(0.5)
+
+                                    if isEditing {
+                                        TextField("Username", text: $username)
+                                            .textFieldStyle(.plain)
+                                            .font(.system(size: 18))
+                                            .textInputAutocapitalization(.never)
+                                            .autocorrectionDisabled()
+                                            .padding(16)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 12)
+                                                    .fill(.ultraThinMaterial)
+                                            )
+                                            .onChange(of: username) { newValue in
+                                                // Remove spaces as user types
+                                                if newValue.contains(" ") {
+                                                    username = newValue.replacingOccurrences(of: " ", with: "")
+                                                }
+                                                // Limit to 12 characters
+                                                if newValue.count > 12 {
+                                                    username = String(newValue.prefix(12))
+                                                }
+                                            }
+
+                                        // Rules hint
+                                        HStack {
+                                            Image(systemName: "info.circle.fill")
+                                                .font(.caption2)
+                                                .foregroundColor(.secondary)
+                                            Text("3-12 characters, letters and numbers only")
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                            Spacer()
+                                            Text("\(username.count)/12")
+                                                .font(.caption2)
+                                                .foregroundColor(username.count > 12 ? .red : .secondary)
                                         }
-                                        // Limit to 12 characters
-                                        if newValue.count > 12 {
-                                            username = String(newValue.prefix(12))
+                                        .padding(.horizontal, 4)
+                                    } else {
+                                        Text(user.username)
+                                            .font(.system(size: 18, weight: .medium))
+                                            .foregroundColor(.primary)
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                            .padding(.vertical, 8)
+                                    }
+                                }
+                                .padding(20)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .fill(.ultraThinMaterial)
+                                        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+                                )
+
+                                // Email section (if available)
+                                if let email = user.email {
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        Text("Email")
+                                            .font(.subheadline)
+                                            .fontWeight(.semibold)
+                                            .foregroundColor(.secondary)
+                                            .textCase(.uppercase)
+                                            .tracking(0.5)
+
+                                        Text(email)
+                                            .font(.system(size: 16))
+                                            .foregroundColor(.primary)
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                    }
+                                    .padding(20)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 20)
+                                            .fill(.ultraThinMaterial)
+                                            .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+                                    )
+                                    .padding(.top, 12)
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 24)
+
+                        // Action buttons
+                        VStack(spacing: 12) {
+                            if isEditing {
+                                Button(action: saveUsername) {
+                                    HStack {
+                                        if isLoading {
+                                            ProgressView()
+                                                .progressViewStyle(.circular)
+                                                .tint(.white)
+                                        } else {
+                                            Image(systemName: "checkmark.circle.fill")
+                                            Text("Save")
+                                                .font(.system(size: 18, weight: .semibold))
                                         }
                                     }
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 56)
+                                    .background(
+                                        LinearGradient(
+                                            colors: username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || username.trimmingCharacters(in: .whitespacesAndNewlines) == appState.currentUser?.username || isLoading ? [.gray.opacity(0.3)] : [.blue, .purple],
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        )
+                                    )
+                                    .foregroundColor(.white)
+                                    .cornerRadius(16)
+                                    .shadow(color: username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? .clear : .blue.opacity(0.3), radius: 10, x: 0, y: 5)
+                                }
+                                .disabled(username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || username.trimmingCharacters(in: .whitespacesAndNewlines) == appState.currentUser?.username || isLoading)
+
+                                Button(action: cancelEditing) {
+                                    Text("Cancel")
+                                        .font(.system(size: 18, weight: .semibold))
+                                        .frame(maxWidth: .infinity)
+                                        .frame(height: 56)
+                                        .background(
+                                            LinearGradient(
+                                                colors: [.gray.opacity(0.3), .gray.opacity(0.2)],
+                                                startPoint: .leading,
+                                                endPoint: .trailing
+                                            )
+                                        )
+                                        .foregroundColor(.primary)
+                                        .cornerRadius(16)
+                                        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
+                                }
                             } else {
-                                Text(user.username)
-                                    .foregroundColor(.secondary)
+                                Button(action: startEditing) {
+                                    HStack {
+                                        Image(systemName: "pencil.circle.fill")
+                                        Text("Edit Username")
+                                            .font(.system(size: 18, weight: .semibold))
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 56)
+                                    .background(
+                                        LinearGradient(
+                                            colors: [.blue, .purple],
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        )
+                                    )
+                                    .foregroundColor(.white)
+                                    .cornerRadius(16)
+                                    .shadow(color: .blue.opacity(0.3), radius: 10, x: 0, y: 5)
+                                }
+                            }
+
+                            Button(role: .destructive, action: {
+                                showingLogoutAlert = true
+                            }) {
+                                HStack {
+                                    Image(systemName: "arrow.right.square.fill")
+                                    Text("Logout")
+                                        .font(.system(size: 18, weight: .semibold))
+                                }
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 56)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .fill(.red.opacity(0.1))
+                                )
+                                .foregroundColor(.red)
                             }
                         }
+                        .padding(.horizontal, 24)
 
-                        if let email = user.email {
-                            HStack {
-                                Text("Email")
-                                Spacer()
-                                Text(email)
-                                    .foregroundColor(.secondary)
+                        // Error message
+                        if let errorMessage = errorMessage {
+                            HStack(spacing: 8) {
+                                Image(systemName: "exclamationmark.circle.fill")
+                                Text(errorMessage)
+                                    .font(.subheadline)
                             }
-                        }
-
-                        HStack {
-                            Text("User ID")
-                            Spacer()
-                            Text(user.id.uuidString.prefix(8))
-                                .foregroundColor(.secondary)
-                                .font(.caption)
-                        }
-                    }
-                }
-
-                Section {
-                    if isEditing {
-                        Button("Save") {
-                            saveUsername()
-                        }
-                        .disabled(username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || username.trimmingCharacters(in: .whitespacesAndNewlines) == appState.currentUser?.username || isLoading)
-
-                        Button("Cancel", role: .cancel) {
-                            cancelEditing()
-                        }
-                    } else {
-                        Button("Edit Username") {
-                            startEditing()
-                        }
-                    }
-                }
-
-                Section {
-                    Button(role: .destructive, action: {
-                        showingLogoutAlert = true
-                    }) {
-                        Label("Logout", systemImage: "arrow.right.square")
-                    }
-                }
-
-                if let errorMessage = errorMessage {
-                    Section {
-                        Text(errorMessage)
                             .foregroundColor(.red)
-                            .font(.caption)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 12)
+                            .background(
+                                Capsule()
+                                    .fill(.red.opacity(0.1))
+                            )
+                            .padding(.horizontal, 24)
+                            .transition(.move(edge: .bottom).combined(with: .opacity))
+                        }
+
+                        Spacer()
+                            .frame(height: 20)
                     }
                 }
             }

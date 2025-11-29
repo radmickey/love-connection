@@ -8,24 +8,59 @@ struct PairRequestsView: View {
 
     var body: some View {
         NavigationStack {
-            Group {
-                if isLoading {
-                    ProgressView()
-                } else if requests.isEmpty {
-                    VStack(spacing: 16) {
-                        Image(systemName: "heart.slash")
-                            .font(.system(size: 60))
-                            .foregroundColor(.secondary)
-                        Text("No pending requests")
-                            .font(.headline)
-                            .foregroundColor(.secondary)
-                    }
-                } else {
-                    List(requests) { request in
-                        PairRequestRow(request: request) {
-                            await respondToRequest(request, accept: true)
-                        } onReject: {
-                            await respondToRequest(request, accept: false)
+            ZStack {
+                // Gradient background
+                LinearGradient(
+                    colors: [
+                        Color(red: 1.0, green: 0.9, blue: 0.95),
+                        Color(red: 1.0, green: 0.95, blue: 0.98),
+                        Color.white
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
+
+                Group {
+                    if isLoading {
+                        ProgressView()
+                            .scaleEffect(1.2)
+                    } else if requests.isEmpty {
+                        VStack(spacing: 20) {
+                            ZStack {
+                                Circle()
+                                    .fill(.secondary.opacity(0.1))
+                                    .frame(width: 120, height: 120)
+
+                                Image(systemName: "heart.slash")
+                                    .font(.system(size: 60))
+                                    .foregroundColor(.secondary)
+                            }
+
+                            VStack(spacing: 8) {
+                                Text("No pending requests")
+                                    .font(.system(size: 22, weight: .bold, design: .rounded))
+
+                                Text("When someone sends you a request, it will appear here")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal, 32)
+                            }
+                        }
+                    } else {
+                        ScrollView {
+                            LazyVStack(spacing: 12) {
+                                ForEach(requests) { request in
+                                    PairRequestRow(request: request) {
+                                        await respondToRequest(request, accept: true)
+                                    } onReject: {
+                                        await respondToRequest(request, accept: false)
+                                    }
+                                }
+                            }
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 16)
                         }
                     }
                 }
@@ -47,7 +82,7 @@ struct PairRequestsView: View {
         do {
             requests = try await APIService.shared.getPairRequests()
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = ErrorFormatter.userFriendlyMessage(from: error)
         }
 
         isLoading = false
@@ -61,7 +96,7 @@ struct PairRequestsView: View {
             }
             await loadRequests()
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = ErrorFormatter.userFriendlyMessage(from: error)
         }
     }
 }
@@ -73,18 +108,44 @@ struct PairRequestRow: View {
     @State private var isProcessing = false
 
     var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
+        HStack(spacing: 16) {
+            // Avatar
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [.blue.opacity(0.2), .purple.opacity(0.1)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 50, height: 50)
+
+                Image(systemName: "person.circle.fill")
+                    .font(.system(size: 30))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [.blue, .purple],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+            }
+
+            // Content
+            VStack(alignment: .leading, spacing: 6) {
                 Text(request.requester?.username ?? "Unknown")
-                    .font(.headline)
+                    .font(.system(size: 18, weight: .semibold, design: .rounded))
+                    .foregroundColor(.black)
 
                 Text("wants to connect with you")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.black.opacity(0.6))
             }
 
             Spacer()
 
+            // Action buttons
             HStack(spacing: 12) {
                 Button(action: {
                     Task {
@@ -93,8 +154,10 @@ struct PairRequestRow: View {
                         isProcessing = false
                     }
                 }) {
-                    Image(systemName: "xmark")
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 32))
                         .foregroundColor(.red)
+                        .opacity(isProcessing ? 0.5 : 1.0)
                 }
                 .disabled(isProcessing)
 
@@ -105,13 +168,20 @@ struct PairRequestRow: View {
                         isProcessing = false
                     }
                 }) {
-                    Image(systemName: "checkmark")
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 32))
                         .foregroundColor(.green)
+                        .opacity(isProcessing ? 0.5 : 1.0)
                 }
                 .disabled(isProcessing)
             }
         }
-        .padding(.vertical, 4)
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.white.opacity(0.9))
+                .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 5)
+        )
     }
 }
 
