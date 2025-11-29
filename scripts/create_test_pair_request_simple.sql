@@ -2,16 +2,17 @@
 -- Выполните этот запрос в вашей PostgreSQL базе данных
 
 -- 1. Создаем тестового пользователя (если его еще нет)
+-- Сначала проверяем по email
 INSERT INTO users (id, email, username, apple_id, created_at)
-VALUES (
+SELECT 
     uuid_generate_v4(),
     'testpartner@example.com',
     'testpartner',
     'test.apple.id.' || uuid_generate_v4()::text,
     NOW()
-)
-ON CONFLICT (email) DO NOTHING
-ON CONFLICT (username) DO NOTHING;
+WHERE NOT EXISTS (
+    SELECT 1 FROM users WHERE email = 'testpartner@example.com' OR username = 'testpartner'
+);
 
 -- 2. Создаем pair request от testpartner к radmickey
 INSERT INTO pair_requests (requester_id, requested_id, status, created_at, updated_at)

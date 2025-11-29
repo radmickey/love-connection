@@ -3,14 +3,15 @@
 -- Шаг 1: Создаем тестового пользователя
 WITH test_user AS (
     INSERT INTO users (id, email, username, apple_id, created_at)
-    VALUES (
+    SELECT 
         uuid_generate_v4(),
         'testuser@example.com',
         'testpartner',
         'test.apple.id.' || uuid_generate_v4()::text,
         NOW()
+    WHERE NOT EXISTS (
+        SELECT 1 FROM users WHERE email = 'testuser@example.com' OR username = 'testpartner'
     )
-    ON CONFLICT (email) DO UPDATE SET username = EXCLUDED.username
     RETURNING id
 ),
 -- Шаг 2: Находим пользователя radmickey
