@@ -8,6 +8,7 @@ struct HeartButtonView: View {
     @State private var duration: TimeInterval = 0
     @State private var timer: Timer?
     @State private var errorMessage: String?
+    @State private var showingBreakPairAlert = false
 
     var body: some View {
         NavigationStack {
@@ -93,19 +94,26 @@ struct HeartButtonView: View {
                                 }
                             }
 
-                            HeartAnimationView(isAnimating: isPressed)
-                                .scaleEffect(isPressed ? 1.15 : 1.0)
-                                .shadow(color: .red.opacity(isPressed ? 0.6 : 0.3), radius: isPressed ? 30 : 15, x: 0, y: isPressed ? 15 : 8)
+                            Button(action: {}) {
+                                HeartAnimationView(isAnimating: isPressed)
+                                    .scaleEffect(isPressed ? 1.15 : 1.0)
+                                    .shadow(color: .red.opacity(isPressed ? 0.6 : 0.3), radius: isPressed ? 30 : 15, x: 0, y: isPressed ? 15 : 8)
+                            }
+                            .buttonStyle(.plain)
+                            .simultaneousGesture(
+                                DragGesture(minimumDistance: 0)
+                                    .onChanged { _ in
+                                        if !isPressed {
+                                            startHolding()
+                                        }
+                                    }
+                                    .onEnded { _ in
+                                        if isPressed {
+                                            stopHolding()
+                                        }
+                                    }
+                            )
                         }
-                        .gesture(
-                            LongPressGesture(minimumDuration: 0)
-                                .onChanged { _ in
-                                    startHolding()
-                                }
-                                .onEnded { _ in
-                                    stopHolding()
-                                }
-                        )
 
                         // Duration display
                         VStack(spacing: 8) {
@@ -169,19 +177,23 @@ struct HeartButtonView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Menu {
-                        Button(role: .destructive, action: {
-                            Task {
-                                await appState.deletePair()
-                            }
-                        }) {
-                            Label("Break Pair", systemImage: "heart.slash")
-                        }
-                    } label: {
-                        Image(systemName: "ellipsis.circle")
-                            .foregroundColor(.secondary)
+                    Button(role: .destructive, action: {
+                        showingBreakPairAlert = true
+                    }) {
+                        Image(systemName: "heart.slash.fill")
+                            .foregroundColor(.red)
                     }
                 }
+            }
+            .alert("Break Connection", isPresented: $showingBreakPairAlert) {
+                Button("Cancel", role: .cancel) {}
+                Button("Break", role: .destructive) {
+                    Task {
+                        await appState.deletePair()
+                    }
+                }
+            } message: {
+                Text("Are you sure you want to break the connection with your partner? This action cannot be undone.")
             }
         }
         .onAppear {

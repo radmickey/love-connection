@@ -4,7 +4,7 @@
 -- 1. Создаем тестового пользователя (если его еще нет)
 -- Сначала проверяем по email
 INSERT INTO users (id, email, username, apple_id, created_at)
-SELECT 
+SELECT
     uuid_generate_v4(),
     'testpartner@example.com',
     'testpartner',

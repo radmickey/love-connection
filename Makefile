@@ -52,6 +52,11 @@ db-create-test-pair-request: ## Create test user and send pair request to radmic
 	@docker-compose exec -T postgres psql -U postgres -d loveconnection < scripts/create_test_pair_request_simple.sql
 	@echo "Done! Check the result above."
 
+db-send-test-love: ## Send test love event (10s) from testpartner to radmickey
+	@echo "Sending test love event..."
+	@docker-compose exec -T postgres psql -U postgres -d loveconnection < scripts/send_test_love.sql
+	@echo "Done! Check the result above."
+
 db-reset: ## Reset database (WARNING: deletes all data)
 	@read -p "Are you sure you want to reset the database? [y/N] " -n 1 -r; \
 	echo; \

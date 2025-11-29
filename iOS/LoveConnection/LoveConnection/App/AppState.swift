@@ -57,10 +57,15 @@ class AppState: ObservableObject {
     func deletePair() async {
         do {
             try await apiService.deletePair()
-            self.currentPair = nil
-            WebSocketService.shared.disconnect()
+            await MainActor.run {
+                self.currentPair = nil
+                WebSocketService.shared.disconnect()
+                self.errorMessage = nil
+            }
         } catch {
-            errorMessage = ErrorFormatter.userFriendlyMessage(from: error)
+            await MainActor.run {
+                errorMessage = ErrorFormatter.userFriendlyMessage(from: error)
+            }
         }
     }
 

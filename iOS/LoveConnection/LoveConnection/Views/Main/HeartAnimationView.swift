@@ -17,6 +17,11 @@ struct HeartAnimationView: View {
             )
             .scaleEffect(scale)
             .rotationEffect(.degrees(rotation))
+            .onAppear {
+                if isAnimating {
+                    startAnimation()
+                }
+            }
             .onChange(of: isAnimating, perform: { animating in
                 if animating {
                     startAnimation()
@@ -35,6 +40,11 @@ struct HeartAnimationView: View {
             rotation = 0
         }
 
+        // Reset to initial state first
+        scale = 1.0
+        rotation = 0
+
+        // Start animations
         withAnimation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true)) {
             scale = 1.2
         }

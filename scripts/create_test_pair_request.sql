@@ -3,7 +3,7 @@
 -- Шаг 1: Создаем тестового пользователя
 WITH test_user AS (
     INSERT INTO users (id, email, username, apple_id, created_at)
-    SELECT 
+    SELECT
         uuid_generate_v4(),
         'testuser@example.com',
         'testpartner',

@@ -10,6 +10,7 @@ struct ProfileView: View {
     @State private var isLoading: Bool = false
     @State private var errorMessage: String?
     @State private var showingLogoutAlert = false
+    @State private var showingBreakPairAlert = false
 
     var body: some View {
         NavigationStack {
@@ -218,6 +219,26 @@ struct ProfileView: View {
                                 }
                             }
 
+                            // Break pair button (if user has a pair)
+                            if appState.currentPair != nil {
+                                Button(role: .destructive, action: {
+                                    showingBreakPairAlert = true
+                                }) {
+                                    HStack {
+                                        Image(systemName: "heart.slash.fill")
+                                        Text("Break Connection")
+                                            .font(.system(size: 18, weight: .semibold))
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 56)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 16)
+                                            .fill(.red.opacity(0.1))
+                                    )
+                                    .foregroundColor(.red)
+                                }
+                            }
+
                             Button(role: .destructive, action: {
                                 showingLogoutAlert = true
                             }) {
@@ -274,6 +295,16 @@ struct ProfileView: View {
                 }
             } message: {
                 Text("Are you sure you want to logout?")
+            }
+            .alert("Break Connection", isPresented: $showingBreakPairAlert) {
+                Button("Cancel", role: .cancel) {}
+                Button("Break", role: .destructive) {
+                    Task {
+                        await appState.deletePair()
+                    }
+                }
+            } message: {
+                Text("Are you sure you want to break the connection with your partner? This action cannot be undone.")
             }
             .disabled(isLoading)
         }
