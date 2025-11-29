@@ -21,6 +21,24 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, hub *websocket.Hub) {
 	r.GET("/health", healthHandler.HealthCheck)
 	r.GET("/api/feature-flags", handlers.GetFeatureFlags)
 
+	// Universal Links: Apple App Site Association file
+	// Важно: файл должен быть доступен по HTTPS без расширения .json
+	r.GET("/.well-known/apple-app-site-association", func(c *gin.Context) {
+		// Apple требует Content-Type: application/json без charset
+		c.Header("Content-Type", "application/json")
+		c.String(http.StatusOK, `{
+	"applinks": {
+		"apps": [],
+		"details": [
+			{
+				"appID": "TEAM_ID.radmickey.CoupleLoveConnection",
+				"paths": ["/add*"]
+			}
+		]
+	}
+}`)
+	})
+
 	// Endpoint для редиректа на deep link при переходе по invite ссылке
 	r.GET("/add", func(c *gin.Context) {
 		username := c.Query("username")
@@ -38,6 +56,11 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, hub *websocket.Hub) {
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Open in Love Connection</title>
 	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
 		body {
 			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 			display: flex;
@@ -46,14 +69,16 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, hub *websocket.Hub) {
 			min-height: 100vh;
 			margin: 0;
 			background: linear-gradient(135deg, #ffeef5 0%, #fff5f8 50%, #ffffff 100%);
+			padding: 20px;
 		}
 		.container {
 			text-align: center;
-			padding: 40px;
+			padding: 40px 30px;
 			background: white;
 			border-radius: 20px;
 			box-shadow: 0 10px 40px rgba(0,0,0,0.1);
 			max-width: 400px;
+			width: 100%;
 		}
 		.heart {
 			font-size: 60px;
@@ -62,10 +87,17 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, hub *websocket.Hub) {
 		h1 {
 			color: #333;
 			margin-bottom: 10px;
+			font-size: 24px;
 		}
 		p {
 			color: #666;
 			margin-bottom: 30px;
+			font-size: 16px;
+			line-height: 1.5;
+		}
+		.username {
+			color: #ff6b9d;
+			font-weight: 600;
 		}
 		.button {
 			display: inline-block;
@@ -75,10 +107,13 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, hub *websocket.Hub) {
 			text-decoration: none;
 			border-radius: 25px;
 			font-weight: 600;
-			transition: transform 0.2s;
+			font-size: 16px;
+			transition: transform 0.2s, box-shadow 0.2s;
+			box-shadow: 0 4px 15px rgba(255, 107, 157, 0.3);
 		}
 		.button:hover {
 			transform: scale(1.05);
+			box-shadow: 0 6px 20px rgba(255, 107, 157, 0.4);
 		}
 		.button:active {
 			transform: scale(0.95);
@@ -89,20 +124,10 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, hub *websocket.Hub) {
 	<div class="container">
 		<div class="heart">💕</div>
 		<h1>Open in Love Connection</h1>
-		<p>Connecting you with <strong>` + username + `</strong></p>
-		<a href="` + deepLink + `" class="button" id="openApp">Open App</a>
+		<p>Connecting you with <span class="username">` + username + `</span></p>
+		<a href="` + universalLink + `" class="button" style="text-decoration: none; border: none; cursor: pointer; display: inline-block;">Open App</a>
+		<p style="margin-top: 20px; font-size: 14px; color: #999;">If the app doesn't open automatically, tap the button above.</p>
 	</div>
-	<script>
-		// Попытка автоматически открыть deep link
-		setTimeout(function() {
-			window.location.href = "` + deepLink + `";
-		}, 100);
-
-		// Если через 2 секунды не открылось, показываем кнопку
-		setTimeout(function() {
-			document.getElementById('openApp').style.display = 'inline-block';
-		}, 2000);
-	</script>
 </body>
 </html>`
 		c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(html))

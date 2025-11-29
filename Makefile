@@ -47,6 +47,11 @@ db-migrate: ## Run database migrations manually
 db-shell: ## Open PostgreSQL shell
 	docker-compose exec postgres psql -U postgres -d loveconnection
 
+db-create-test-pair-request: ## Create test user and send pair request to radmickey
+	@echo "Creating test user and pair request..."
+	@docker-compose exec -T postgres psql -U postgres -d loveconnection < scripts/create_test_pair_request_simple.sql
+	@echo "Done! Check the result above."
+
 db-reset: ## Reset database (WARNING: deletes all data)
 	@read -p "Are you sure you want to reset the database? [y/N] " -n 1 -r; \
 	echo; \
