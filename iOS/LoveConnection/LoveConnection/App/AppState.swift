@@ -28,6 +28,11 @@ class AppState: ObservableObject {
                     self.currentUser = user
                     self.isAuthenticated = true
                     await loadCurrentPair()
+                    // Request notification permissions and register for remote notifications
+                    let granted = await NotificationService.shared.requestAuthorization()
+                    if granted {
+                        NotificationService.shared.registerForRemoteNotifications()
+                    }
                     NotificationService.shared.sendDeviceTokenIfAuthenticated()
                 } catch {
                     KeychainHelper.shared.deleteToken()

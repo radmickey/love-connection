@@ -129,12 +129,14 @@ func (h *LoveHandler) GetHistory(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 	currentUserID := userID.(uuid.UUID)
 
+	// Получаем все события из пары пользователя (как отправленные им, так и полученные от партнера)
 	rows, err := h.db.Query(
 		`SELECT e.id, e.pair_id, e.sender_id, e.duration_seconds, e.created_at,
 			u.id, u.email, u.apple_id, u.username, u.created_at
 		FROM love_events e
 		JOIN users u ON e.sender_id = u.id
-		WHERE e.sender_id = $1
+		JOIN pairs p ON e.pair_id = p.id
+		WHERE (p.user1_id = $1 OR p.user2_id = $1)
 		ORDER BY e.created_at DESC
 		LIMIT 100`,
 		currentUserID,

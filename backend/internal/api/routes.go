@@ -31,7 +31,7 @@ func SetupRoutes(r *gin.Engine, db *sql.DB, hub *websocket.Hub) {
 		"apps": [],
 		"details": [
 			{
-				"appID": "TEAM_ID.radmickey.CoupleLoveConnection",
+				"appID": "UG4928G289.radmickey.CoupleLoveConnection",
 				"paths": ["/add*"]
 			}
 		]

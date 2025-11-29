@@ -57,6 +57,10 @@ db-send-test-love: ## Send test love event (10s) from testpartner to radmickey
 	@docker-compose exec -T postgres psql -U postgres -d loveconnection < scripts/send_test_love.sql
 	@echo "Done! Check the result above."
 
+db-check-device-tokens: ## Check device tokens for all users
+	@echo "Checking device tokens..."
+	@docker-compose exec -T postgres psql -U postgres -d loveconnection < scripts/check_device_tokens.sql
+
 db-reset: ## Reset database (WARNING: deletes all data)
 	@read -p "Are you sure you want to reset the database? [y/N] " -n 1 -r; \
 	echo; \
